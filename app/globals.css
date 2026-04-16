@@ -1,26 +1,61 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base */
+  --bg-base: #0e0e0e;
+  --bg-card: #1a1a1a;
+  --bg-card-raised: #252525;
+  --bg-nav: rgba(10, 10, 10, 0.85);
+
+  /* Text */
+  --text-primary: #f2f2f2;
+  --text-muted: #6a6a6a;
+
+  /* Section accents */
+  --accent-meal: #b6ff4a;
+  --accent-food: #4abaff;
+  --accent-grocery: #fdcb40;
+  --accent-workout: #ff5623;
+
+  /* Semantic */
+  --color-success: #b6ff4a;
+  --color-error: #ff453a;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg-base: var(--bg-base);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-raised: var(--bg-card-raised);
+  --color-text-primary: var(--text-primary);
+  --color-text-muted: var(--text-muted);
+  --color-accent-meal: var(--accent-meal);
+  --color-accent-food: var(--accent-food);
+  --color-accent-grocery: var(--accent-grocery);
+  --color-accent-workout: var(--accent-workout);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  background: var(--bg-base);
+  color: var(--text-primary);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+/* Hide scrollbars but keep scroll */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  scrollbar-width: none;
 }

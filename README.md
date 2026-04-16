@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FuelLog
 
-## Getting Started
+Personal nutrition tracker. Log meals, track macros, and build a food bank of your go-to foods — all powered by AI.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **AI meal parsing** — paste text or speak a meal description, AI extracts individual foods with macros
+- **Food bank** — auto-saves foods you've logged, searchable, reusable
+- **Serving multiplier** — scale any meal's macros with − N + controls, apply to save
+- **Date navigation** — week strip + month calendar, browse any day's log
+- **Daily macro goals** — progress bars for calories, protein, carbs, fat
+- **Desktop sidebar** — calorie ring overview at a glance
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Next.js** (App Router)
+- **Convex** (real-time database + backend functions)
+- **OpenRouter** (free AI models for meal parsing)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Setup
 
-## Learn More
+1. Clone the repo
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Copy `.env.example` to `.env.local` and fill in your keys:
+   - Convex: `npx convex dev` will generate your deployment URL
+   - OpenRouter: get a free API key at [openrouter.ai](https://openrouter.ai)
 
-To learn more about Next.js, take a look at the following resources:
+4. Run Convex and Next.js in separate terminals:
+   ```bash
+   npx convex dev
+   npm run dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. Open [http://localhost:3000](http://localhost:3000)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Environment Variables
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See `.env.example` for all required variables.
