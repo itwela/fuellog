@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
@@ -23,26 +23,34 @@ export function MealLogView({ userId }: { userId: string }) {
   const [logSheet, setLogSheet] = useState<LogSheetState | null>(null);
   const [goalsOpen, setGoalsOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const today = new Date();
-  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
+  const [today, setToday] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  const selectedISO = toISO(selectedDate);
-  const isToday = isSameDay(selectedDate, today);
+  useEffect(() => {
+    const now = new Date();
+    setToday(now);
+    setSelectedDate(now);
+  }, []);
 
-  const logs = useQuery(api.meals.getByDate, { userId, date: selectedISO }) ?? [];
+  const selectedISO = selectedDate ? toISO(selectedDate) : null;
+  const isToday = selectedDate && today ? isSameDay(selectedDate, today) : false;
+
+  const logs = useQuery(api.meals.getByDate, selectedISO ? { userId, date: selectedISO } : "skip") ?? [];
   const goals = useQuery(api.goals.get, { userId });
-  const loggedDates = useQuery(api.meals.getLoggedDatesInMonth, {
+  const loggedDates = useQuery(api.meals.getLoggedDatesInMonth, selectedDate ? {
     userId,
     year: selectedDate.getFullYear(),
     month: selectedDate.getMonth() + 1,
-  }) ?? [];
+  } : "skip") ?? [];
 
   const totals = sumMacros(logs);
   const calorieConsumed = totals.calories ?? 0;
   const calorieGoal = goals?.calories ?? 0;
   const calorieRemaining = calorieGoal > 0 ? Math.max(calorieGoal - calorieConsumed, 0) : null;
   const calorieOver = calorieGoal > 0 && calorieConsumed > calorieGoal;
-  const sugarDayLabel = isToday ? "Today" : formatDayLabel(selectedDate);
+  const sugarDayLabel = isToday ? "Today" : selectedDate ? formatDayLabel(selectedDate) : "";
+
+  if (!selectedDate || !today) return null;
 
   return (
     <div className="flex flex-col min-h-full pb-4">
@@ -134,7 +142,7 @@ export function MealLogView({ userId }: { userId: string }) {
           >
             {isToday
               ? "Nothing logged yet — tap + to add a meal"
-              : `Nothing logged on ${formatDayLabel(selectedDate)}`}
+              : `Nothing logged on ${formatDayLabel(selectedDate!)}`}
           </motion.p>
         ) : (
           <AnimatePresence>
@@ -169,7 +177,7 @@ export function MealLogView({ userId }: { userId: string }) {
             key={logSheet.kind === "edit" ? logSheet.meal._id : "new"}
             userId={userId}
             accent={ACCENT}
-            logDate={selectedISO}
+            logDate={toISO(selectedDate)}
             editingMeal={logSheet.kind === "edit" ? logSheet.meal : undefined}
             onClose={() => setLogSheet(null)}
           />
