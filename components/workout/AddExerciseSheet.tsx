@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -22,8 +22,33 @@ export function AddExerciseSheet({
   const [reps, setReps] = useState("10");
   const [weight, setWeight] = useState("");
   const [gifUrl, setGifUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadedStorageId, setUploadedStorageId] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const addExercise = useMutation(api.workout.addExercise);
+  const generateUploadUrl = useMutation(api.fileStorage.generateUploadUrl);
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const result = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      const { storageId } = await result.json();
+      setUploadedStorageId(storageId);
+      setPreviewUrl(URL.createObjectURL(file));
+      setGifUrl("");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function handleSave() {
     if (!name.trim()) return;
@@ -35,9 +60,12 @@ export function AddExerciseSheet({
       defaultReps: reps || undefined,
       defaultWeight: weight || undefined,
       gifUrl: gifUrl.trim() || undefined,
+      imageStorageId: uploadedStorageId || undefined,
     });
     onClose();
   }
+
+  const mediaPreview = previewUrl || (gifUrl.trim() ? gifUrl.trim() : null);
 
   return (
     <>
@@ -111,17 +139,75 @@ export function AddExerciseSheet({
             ))}
           </div>
 
+          {/* Media section */}
           <div>
-            <label className="text-[10px] uppercase tracking-widest text-[#6a6a6a] block mb-1">GIF / Video URL</label>
+            <label className="text-[10px] uppercase tracking-widest text-[#6a6a6a] block mb-2">Exercise media</label>
+
+            {/* Upload button */}
             <input
-              value={gifUrl}
-              onChange={(e) => setGifUrl(e.target.value)}
-              placeholder="Paste a GIF or image URL..."
-              className="w-full bg-[#252525] rounded-xl px-4 py-3 text-sm text-[#f2f2f2] placeholder-[#6a6a6a] outline-none"
+              ref={fileRef}
+              type="file"
+              accept="image/*,video/gif"
+              className="hidden"
+              onChange={handleFileUpload}
             />
-            {gifUrl.trim() && (
+            <div className="flex gap-2 mb-2">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
+                style={{ background: uploadedStorageId ? `${accent}22` : "#252525", color: accent, border: `1px solid ${accent}44` }}
+              >
+                {uploading ? (
+                  <>
+                    <svg className="animate-spin" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" d="M12 3a9 9 0 1 1 0 18A9 9 0 0 1 12 3Z" />
+                    </svg>
+                    Uploading...
+                  </>
+                ) : uploadedStorageId ? (
+                  <>
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                    Uploaded
+                  </>
+                ) : (
+                  <>
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                    </svg>
+                    Upload GIF / Image
+                  </>
+                )}
+              </motion.button>
+              {uploadedStorageId && (
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => { setUploadedStorageId(null); setPreviewUrl(null); }}
+                  className="px-3 py-2.5 rounded-xl text-xs text-[#6a6a6a]"
+                  style={{ background: "#252525" }}
+                >
+                  Clear
+                </motion.button>
+              )}
+            </div>
+
+            {/* Or paste URL */}
+            {!uploadedStorageId && (
+              <input
+                value={gifUrl}
+                onChange={(e) => setGifUrl(e.target.value)}
+                placeholder="Or paste a GIF / image URL..."
+                className="w-full bg-[#252525] rounded-xl px-4 py-3 text-sm text-[#f2f2f2] placeholder-[#6a6a6a] outline-none"
+              />
+            )}
+
+            {/* Preview */}
+            {mediaPreview && (
               <img
-                src={gifUrl.trim()}
+                src={mediaPreview}
                 alt="preview"
                 className="w-full rounded-xl mt-2 object-cover"
                 style={{ maxHeight: 160 }}

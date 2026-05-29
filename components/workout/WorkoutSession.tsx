@@ -65,11 +65,11 @@ export function WorkoutSession({
         )}
       </div>
 
-      {/* GIF preview */}
-      {exercise?.gifUrl && (
+      {/* GIF / image preview */}
+      {(exercise?.imageUrl || exercise?.gifUrl) && (
         <div className="px-5 mb-4">
           <img
-            src={exercise.gifUrl}
+            src={exercise.imageUrl ?? exercise.gifUrl ?? ""}
             alt={exercise.name}
             className="w-full rounded-2xl object-cover"
             style={{ maxHeight: 200 }}

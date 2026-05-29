@@ -6,16 +6,17 @@ const BASE_URL = "https://openrouter.ai/api/v1";
  * Default free multimodal models (text + image on OpenRouter). Different providers to reduce single-provider 429s.
  * Parse uses one order; estimate uses another so the “big parse” and per-item enrichments don’t hit the same model first.
  */
+// Smaller/faster models first for estimates; larger models for parse (needs more reasoning)
 const DEFAULT_PARSE_MODELS = [
+  "google/gemma-3-4b-it:free",
   "nvidia/nemotron-nano-12b-v2-vl:free",
-  "google/gemma-4-26b-a4b-it:free",
   "google/gemma-3-12b-it:free",
 ] as const;
 
 const DEFAULT_ESTIMATE_MODELS = [
-  "google/gemma-4-26b-a4b-it:free",
-  "nvidia/nemotron-nano-12b-v2-vl:free",
+  "google/gemma-3-4b-it:free",
   "google/gemma-3-12b-it:free",
+  "nvidia/nemotron-nano-12b-v2-vl:free",
 ] as const;
 
 function splitModelList(raw: string | undefined): string[] {
@@ -200,6 +201,8 @@ Respond with a single JSON object only, no markdown:
         },
         { role: "user", content: prompt },
       ],
+      max_tokens: 120,
+      temperature: 0,
     },
     models,
     "estimateMacrosFromText"

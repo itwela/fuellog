@@ -8,12 +8,14 @@
  * @module
  */
 
+import type * as fileStorage from "../fileStorage.js";
 import type * as foodbank from "../foodbank.js";
 import type * as goals from "../goals.js";
 import type * as grocery from "../grocery.js";
 import type * as groceryActions from "../groceryActions.js";
 import type * as lib_ai from "../lib/ai.js";
 import type * as mealActions from "../mealActions.js";
+import type * as mealplans from "../mealplans.js";
 import type * as meals from "../meals.js";
 import type * as workout from "../workout.js";
 
@@ -24,12 +26,14 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  fileStorage: typeof fileStorage;
   foodbank: typeof foodbank;
   goals: typeof goals;
   grocery: typeof grocery;
   groceryActions: typeof groceryActions;
   "lib/ai": typeof lib_ai;
   mealActions: typeof mealActions;
+  mealplans: typeof mealplans;
   meals: typeof meals;
   workout: typeof workout;
 }>;

@@ -42,6 +42,7 @@ export default defineSchema({
     sugar: v.optional(v.number()),
     useCount: v.number(),
     updatedAt: v.number(),
+    imageStorageId: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
     .index("by_user_name", ["userId", "name"])
@@ -72,6 +73,7 @@ export default defineSchema({
     defaultReps: v.optional(v.string()),
     defaultWeight: v.optional(v.string()),
     gifUrl: v.optional(v.string()),
+    imageStorageId: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index("by_user", ["userId"])
@@ -83,6 +85,13 @@ export default defineSchema({
     startedAt: v.number(),
     completedAt: v.optional(v.number()),
     exerciseIds: v.array(v.id("exercises")),
+  }).index("by_user", ["userId"]),
+
+  workout_routines: defineTable({
+    userId: v.string(),
+    name: v.string(),
+    exerciseIds: v.array(v.id("exercises")),
+    createdAt: v.number(),
   }).index("by_user", ["userId"]),
 
   user_goals: defineTable({
@@ -107,4 +116,28 @@ export default defineSchema({
     ),
     completed: v.boolean(),
   }).index("by_session", ["sessionId"]),
+
+  meal_plans: defineTable({
+    userId: v.string(),
+    name: v.string(),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]),
+
+  meal_plan_items: defineTable({
+    planId: v.id("meal_plans"),
+    name: v.string(),
+    mealType: v.union(
+      v.literal("breakfast"),
+      v.literal("lunch"),
+      v.literal("dinner"),
+      v.literal("snack")
+    ),
+    calories: v.optional(v.number()),
+    protein: v.optional(v.number()),
+    fat: v.optional(v.number()),
+    carbs: v.optional(v.number()),
+    fiber: v.optional(v.number()),
+    sugar: v.optional(v.number()),
+    order: v.number(),
+  }).index("by_plan", ["planId"]),
 });

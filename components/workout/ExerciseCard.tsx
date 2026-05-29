@@ -13,6 +13,8 @@ interface Exercise {
   defaultReps?: string | null;
   defaultWeight?: string | null;
   gifUrl?: string | null;
+  imageStorageId?: string | null;
+  imageUrl?: string | null;
 }
 
 export function ExerciseCard({
@@ -78,7 +80,7 @@ export function ExerciseCard({
             {setsReps && (
               <span className="text-xs font-medium tabular-nums leading-snug text-right pt-0.5">{setsReps}</span>
             )}
-            {exercise.gifUrl && (
+            {(exercise.gifUrl || exercise.imageUrl) && (
               <svg width="14" height="14" fill="none" stroke={accent} strokeWidth="1.5" viewBox="0 0 24 24" className="shrink-0 mt-0.5">
                 <path
                   strokeLinecap="round"
@@ -114,7 +116,7 @@ export function ExerciseCard({
       </div>
 
       <AnimatePresence>
-        {expanded && !selectable && exercise.gifUrl && (
+        {expanded && !selectable && (exercise.gifUrl || exercise.imageUrl) && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
@@ -124,7 +126,7 @@ export function ExerciseCard({
           >
             <div className="px-4 pb-4">
               <img
-                src={exercise.gifUrl}
+                src={exercise.imageUrl ?? exercise.gifUrl ?? ""}
                 alt={exercise.name}
                 className="w-full rounded-xl object-cover"
                 style={{ maxHeight: 200 }}

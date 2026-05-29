@@ -8,8 +8,9 @@ import { MealLogView } from "@/components/meal/MealLogView";
 import { FoodBankView } from "@/components/foodbank/FoodBankView";
 import { GroceryView } from "@/components/grocery/GroceryView";
 import { WorkoutView } from "@/components/workout/WorkoutView";
+import { MealPlanView } from "@/components/mealplan/MealPlanView";
 
-export type Tab = "meal" | "food" | "grocery" | "workout";
+export type Tab = "meal" | "food" | "grocery" | "workout" | "plans";
 
 const USER_ID = "user_default"; // Replace with real auth later
 
@@ -18,13 +19,14 @@ const views: Record<Tab, React.FC<{ userId: string }>> = {
   food: FoodBankView,
   grocery: GroceryView,
   workout: WorkoutView,
+  plans: MealPlanView,
 };
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>("meal");
   const [prevTab, setPrevTab] = useState<Tab>("meal");
 
-  const tabs: Tab[] = ["meal", "food", "grocery", "workout"];
+  const tabs: Tab[] = ["meal", "food", "grocery", "workout", "plans"];
   const direction = tabs.indexOf(activeTab) > tabs.indexOf(prevTab) ? 1 : -1;
 
   function handleTabChange(tab: Tab) {

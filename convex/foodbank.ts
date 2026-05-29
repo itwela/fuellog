@@ -4,19 +4,29 @@ import { mutation, query } from "./_generated/server";
 export const search = query({
   args: { userId: v.string(), query: v.string() },
   handler: async (ctx, { userId, query: q }) => {
+    let items;
     if (!q.trim()) {
-      return await ctx.db
+      items = await ctx.db
         .query("food_bank")
         .withIndex("by_user", (idx) => idx.eq("userId", userId))
         .order("desc")
         .take(30);
+    } else {
+      items = await ctx.db
+        .query("food_bank")
+        .withSearchIndex("search_name", (idx) =>
+          idx.search("name", q).eq("userId", userId)
+        )
+        .take(20);
     }
-    return await ctx.db
-      .query("food_bank")
-      .withSearchIndex("search_name", (idx) =>
-        idx.search("name", q).eq("userId", userId)
-      )
-      .take(20);
+    return await Promise.all(
+      items.map(async (item) => ({
+        ...item,
+        imageUrl: item.imageStorageId
+          ? await ctx.storage.getUrl(item.imageStorageId)
+          : null,
+      }))
+    );
   },
 });
 
@@ -64,6 +74,13 @@ export const upsert = mutation({
       useCount: 0,
       updatedAt: Date.now(),
     });
+  },
+});
+
+export const setImage = mutation({
+  args: { id: v.id("food_bank"), imageStorageId: v.string() },
+  handler: async (ctx, { id, imageStorageId }) => {
+    await ctx.db.patch(id, { imageStorageId });
   },
 });
 

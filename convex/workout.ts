@@ -4,19 +4,27 @@ import { mutation, query } from "./_generated/server";
 export const getExercises = query({
   args: { userId: v.string(), search: v.optional(v.string()) },
   handler: async (ctx, { userId, search }) => {
+    let items;
     if (search?.trim()) {
-      return await ctx.db
+      items = await ctx.db
         .query("exercises")
         .withSearchIndex("search_name", (idx) =>
           idx.search("name", search).eq("userId", userId)
         )
         .take(20);
+    } else {
+      items = await ctx.db
+        .query("exercises")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .order("desc")
+        .collect();
     }
-    return await ctx.db
-      .query("exercises")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .order("desc")
-      .collect();
+    return await Promise.all(
+      items.map(async (ex) => ({
+        ...ex,
+        imageUrl: ex.imageStorageId ? await ctx.storage.getUrl(ex.imageStorageId) : null,
+      }))
+    );
   },
 });
 
@@ -29,6 +37,7 @@ export const addExercise = mutation({
     defaultReps: v.optional(v.string()),
     defaultWeight: v.optional(v.string()),
     gifUrl: v.optional(v.string()),
+    imageStorageId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("exercises", {
@@ -47,6 +56,7 @@ export const updateExercise = mutation({
     defaultReps: v.optional(v.string()),
     defaultWeight: v.optional(v.string()),
     gifUrl: v.optional(v.string()),
+    imageStorageId: v.optional(v.string()),
   },
   handler: async (ctx, { id, ...fields }) => {
     await ctx.db.patch(id, fields);
@@ -116,10 +126,20 @@ export const getSessionExercises = query({
       .collect();
 
     return await Promise.all(
-      sessionExercises.map(async (se) => ({
-        ...se,
-        exercise: await ctx.db.get(se.exerciseId),
-      }))
+      sessionExercises.map(async (se) => {
+        const exercise = await ctx.db.get(se.exerciseId);
+        return {
+          ...se,
+          exercise: exercise
+            ? {
+                ...exercise,
+                imageUrl: exercise.imageStorageId
+                  ? await ctx.storage.getUrl(exercise.imageStorageId)
+                  : null,
+              }
+            : null,
+        };
+      })
     );
   },
 });
@@ -146,5 +166,63 @@ export const completeSession = mutation({
   args: { id: v.id("workout_sessions") },
   handler: async (ctx, { id }) => {
     await ctx.db.patch(id, { completedAt: Date.now() });
+  },
+});
+
+export const getExerciseImageUrl = query({
+  args: { storageId: v.string() },
+  handler: async (ctx, { storageId }) => {
+    return await ctx.storage.getUrl(storageId);
+  },
+});
+
+export const getRoutines = query({
+  args: { userId: v.string() },
+  handler: async (ctx, { userId }) => {
+    const routines = await ctx.db
+      .query("workout_routines")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .order("desc")
+      .collect();
+    return await Promise.all(
+      routines.map(async (r) => {
+        const exercises = await Promise.all(
+          r.exerciseIds.map((id) => ctx.db.get(id))
+        );
+        return { ...r, exercises: exercises.filter(Boolean) };
+      })
+    );
+  },
+});
+
+export const createRoutine = mutation({
+  args: {
+    userId: v.string(),
+    name: v.string(),
+    exerciseIds: v.array(v.id("exercises")),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("workout_routines", {
+      ...args,
+      createdAt: Date.now(),
+    });
+  },
+});
+
+export const updateRoutine = mutation({
+  args: {
+    id: v.id("workout_routines"),
+    name: v.optional(v.string()),
+    exerciseIds: v.optional(v.array(v.id("exercises"))),
+  },
+  handler: async (ctx, { id, ...fields }) => {
+    await ctx.db.patch(id, fields);
+  },
+});
+
+export const deleteRoutine = mutation({
+  args: { id: v.id("workout_routines") },
+  handler: async (ctx, { id }) => {
+    await ctx.db.delete(id);
   },
 });

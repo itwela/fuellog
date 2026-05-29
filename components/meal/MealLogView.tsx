@@ -14,6 +14,7 @@ import { MonthCalendar } from "./MonthCalendar";
 import { MacroProgressBar } from "@/components/MacroProgressBar";
 import { GoalsSheet } from "@/components/GoalsSheet";
 import { SugarDayStat } from "@/components/SugarDayStat";
+import { PlanPickerSheet } from "@/components/mealplan/PlanPickerSheet";
 
 const ACCENT = "#b6ff4a";
 
@@ -23,6 +24,7 @@ export function MealLogView({ userId }: { userId: string }) {
   const [logSheet, setLogSheet] = useState<LogSheetState | null>(null);
   const [goalsOpen, setGoalsOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [planPickerOpen, setPlanPickerOpen] = useState(false);
   const [today, setToday] = useState<Date | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
@@ -131,6 +133,21 @@ export function MealLogView({ userId }: { userId: string }) {
         <SugarDayStat grams={totals.sugar ?? 0} dayLabel={sugarDayLabel} />
       </div>
 
+      {/* Load plan button */}
+      <div className="px-5 mb-3 md:hidden">
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          onClick={() => setPlanPickerOpen(true)}
+          className="w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
+          style={{ background: "#1a1a1a", color: "#c084fc", border: "1px solid #c084fc33" }}
+        >
+          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+          </svg>
+          Load Meal Plan
+        </motion.button>
+      </div>
+
       {/* Meal list */}
       <div className="flex-1 px-4 space-y-2">
         {logs.length === 0 ? (
@@ -189,6 +206,13 @@ export function MealLogView({ userId }: { userId: string }) {
             loggedDates={loggedDates}
             onSelect={setSelectedDate}
             onClose={() => setCalendarOpen(false)}
+          />
+        )}
+        {planPickerOpen && selectedISO && (
+          <PlanPickerSheet
+            userId={userId}
+            logDate={selectedISO}
+            onClose={() => setPlanPickerOpen(false)}
           />
         )}
       </AnimatePresence>
