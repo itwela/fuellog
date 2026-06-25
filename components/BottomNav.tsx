@@ -9,20 +9,20 @@ const TABS: {
   icon: (props: { active: boolean; color: string }) => React.ReactElement;
 }[] = [
   {
-    id: "water",
-    label: "Water",
-    icon: ({ active, color }) => (
-      <svg width="25" height="25" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25S5.25 9.75 5.25 14.25a6.75 6.75 0 0 0 13.5 0C18.75 9.75 12 2.25 12 2.25Z" />
-      </svg>
-    ),
-  },
-  {
     id: "meal",
     label: "Log",
     icon: ({ active, color }) => (
       <svg width="25" height="25" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    ),
+  },
+  {
+    id: "water",
+    label: "Water",
+    icon: ({ active, color }) => (
+      <svg width="25" height="25" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25S5.25 9.75 5.25 14.25a6.75 6.75 0 0 0 13.5 0C18.75 9.75 12 2.25 12 2.25Z" />
       </svg>
     ),
   },
