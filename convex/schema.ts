@@ -142,4 +142,12 @@ export default defineSchema({
     sugar: v.optional(v.number()),
     order: v.number(),
   }).index("by_plan", ["planId"]),
+
+  hydration_logs: defineTable({
+    userId: v.string(),
+    ozAmount: v.number(),
+    loggedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_date", ["userId", "loggedAt"]),
 });

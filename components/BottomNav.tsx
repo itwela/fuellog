@@ -53,6 +53,15 @@ const TABS: {
       </svg>
     ),
   },
+  {
+    id: "water",
+    label: "Water",
+    icon: ({ active, color }) => (
+      <svg width="25" height="25" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25S5.25 9.75 5.25 14.25a6.75 6.75 0 0 0 13.5 0C18.75 9.75 12 2.25 12 2.25Z" />
+      </svg>
+    ),
+  },
 ];
 
 const ACCENT: Record<Tab, string> = {
@@ -61,6 +70,7 @@ const ACCENT: Record<Tab, string> = {
   grocery: "#fdcb40",
   workout: "#ff5623",
   plans: "#c084fc",
+  water: "#38bdf8",
 };
 
 const INACTIVE = "rgba(235,235,245,0.32)";

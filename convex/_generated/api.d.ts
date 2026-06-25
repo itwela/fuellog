@@ -13,6 +13,7 @@ import type * as foodbank from "../foodbank.js";
 import type * as goals from "../goals.js";
 import type * as grocery from "../grocery.js";
 import type * as groceryActions from "../groceryActions.js";
+import type * as hydration from "../hydration.js";
 import type * as lib_ai from "../lib/ai.js";
 import type * as mealActions from "../mealActions.js";
 import type * as mealplans from "../mealplans.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   goals: typeof goals;
   grocery: typeof grocery;
   groceryActions: typeof groceryActions;
+  hydration: typeof hydration;
   "lib/ai": typeof lib_ai;
   mealActions: typeof mealActions;
   mealplans: typeof mealplans;
