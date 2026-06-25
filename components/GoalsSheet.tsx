@@ -56,6 +56,13 @@ export function GoalsSheet({
 
   const ACCENT = "#b6ff4a";
 
+  const fields: [keyof GoalForm, string, string][] = [
+    ["calories", "Daily Calories", "kcal"],
+    ["protein", "Protein", "g / day"],
+    ["carbs", "Carbs", "g / day"],
+    ["fat", "Fat", "g / day"],
+  ];
+
   return (
     <>
       <motion.div
@@ -63,77 +70,94 @@ export function GoalsSheet({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 z-40 bg-black/60"
+        className="fixed inset-0 z-40"
+        style={{ background: "rgba(0,0,0,0.52)" }}
       />
       <motion.div
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
-        transition={{ type: "spring", stiffness: 320, damping: 38 }}
-        className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl px-5 pt-4 pb-10 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[420px] md:rounded-3xl"
+        transition={{ type: "spring", stiffness: 340, damping: 40 }}
+        className="fixed inset-x-0 bottom-0 z-50 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[400px]"
         style={{
           background: "#1a1a1a",
+          borderRadius: "20px 20px 0 0",
           maxHeight: "calc(100dvh - 16px)",
           overflowY: "auto",
-          paddingBottom: "calc(2.5rem + env(safe-area-inset-bottom) + 84px)",
+          paddingBottom: "calc(2rem + env(safe-area-inset-bottom))",
           overscrollBehavior: "contain",
         }}
       >
-        <div className="w-10 h-1 bg-[#3a3a3a] rounded-full mx-auto mb-5 md:hidden" />
+        {/* Handle */}
+        <div
+          className="w-9 h-[5px] rounded-full mx-auto mt-3 mb-6 md:hidden"
+          style={{ background: "rgba(84,84,88,0.6)" }}
+        />
 
-        <div className="flex items-center justify-between mb-6">
+        {/* Header */}
+        <div className="flex items-start justify-between px-5 mb-6">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.15em] text-[#6a6a6a]">Daily targets</p>
+            <p className="text-xs font-medium text-[#6a6a6a] mb-1">Daily targets</p>
             <h2
-              className="text-3xl font-black leading-none"
-              style={{ fontFamily: "var(--font-display)", color: ACCENT }}
+              className="text-2xl font-bold leading-tight"
+              style={{ color: ACCENT, letterSpacing: "-0.02em" }}
             >
               Your Goals
             </h2>
           </div>
-          <button onClick={onClose} className="text-[#6a6a6a] p-1">
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+          <button
+            onClick={onClose}
+            className="mt-0.5 w-8 h-8 flex items-center justify-center rounded-full"
+            style={{ background: "#252525", color: "#6a6a6a" }}
+          >
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <div className="space-y-3">
-          {([
-            ["calories", "Daily Calories", "kcal"],
-            ["protein", "Protein", "g / day"],
-            ["carbs", "Carbs", "g / day"],
-            ["fat", "Fat", "g / day"],
-          ] as [keyof GoalForm, string, string][]).map(([field, label, unit]) => (
-            <div key={field}>
-              <label className="text-[10px] uppercase tracking-widest text-[#6a6a6a] block mb-1">
-                {label} <span className="opacity-50">{unit}</span>
-              </label>
-              <input
-                type="number"
-                value={form[field]}
-                onChange={(e) => set(field, e.target.value)}
-                placeholder="0"
-                className="w-full bg-[#252525] rounded-xl px-4 py-3 text-sm text-[#f2f2f2] placeholder-[#6a6a6a] outline-none"
-              />
+        {/* Fields */}
+        <div className="px-5 space-y-2">
+          {fields.map(([field, label, unit]) => (
+            <div
+              key={field}
+              className="rounded-xl overflow-hidden"
+              style={{ background: "#252525" }}
+            >
+              <div className="flex items-center px-4 py-3">
+                <label className="flex-1 text-sm font-medium text-[#f2f2f2]">
+                  {label}
+                  <span className="text-[#6a6a6a] font-normal ml-1.5 text-xs">{unit}</span>
+                </label>
+                <input
+                  type="number"
+                  value={form[field]}
+                  onChange={(e) => set(field, e.target.value)}
+                  placeholder="0"
+                  className="w-24 text-right bg-transparent text-sm font-medium text-[#f2f2f2] placeholder-[#3a3a3a] outline-none"
+                  style={{ letterSpacing: "-0.01em" }}
+                />
+              </div>
             </div>
           ))}
         </div>
 
-        <motion.button
-          whileTap={{ scale: 0.96 }}
-          onClick={handleSave}
-          disabled={!form.calories}
-          className="w-full mt-6 py-4 rounded-2xl font-bold text-base"
-          style={{
-            background: ACCENT,
-            color: "#0e0e0e",
-            opacity: form.calories ? 1 : 0.4,
-            fontFamily: "var(--font-display)",
-          }}
-        >
-          Save Goals
-        </motion.button>
+        <div className="px-5 mt-5">
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={handleSave}
+            disabled={!form.calories}
+            className="w-full py-3.5 rounded-2xl font-semibold text-[15px]"
+            style={{
+              background: ACCENT,
+              color: "#0e0e0e",
+              opacity: form.calories ? 1 : 0.35,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            Save Goals
+          </motion.button>
+        </div>
       </motion.div>
     </>
   );

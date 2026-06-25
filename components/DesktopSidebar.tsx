@@ -10,12 +10,16 @@ import { GoalsSheet } from "./GoalsSheet";
 import { SugarDayStat } from "./SugarDayStat";
 import type { Tab } from "@/app/page";
 
-const NAV_ITEMS: { id: Tab; label: string; icon: React.FC<{ active: boolean; color: string }> }[] = [
+const NAV_ITEMS: {
+  id: Tab;
+  label: string;
+  icon: (props: { active: boolean; color: string }) => React.ReactElement;
+}[] = [
   {
     id: "meal",
     label: "Meal Log",
     icon: ({ active, color }) => (
-      <svg width="18" height="18" fill="none" stroke={active ? color : "currentColor"} strokeWidth="1.5" viewBox="0 0 24 24">
+      <svg width="17" height="17" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
       </svg>
     ),
@@ -24,7 +28,7 @@ const NAV_ITEMS: { id: Tab; label: string; icon: React.FC<{ active: boolean; col
     id: "food",
     label: "Food Bank",
     icon: ({ active, color }) => (
-      <svg width="18" height="18" fill="none" stroke={active ? color : "currentColor"} strokeWidth="1.5" viewBox="0 0 24 24">
+      <svg width="17" height="17" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-.375c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v.375c0 .621.504 1.125 1.125 1.125Z" />
       </svg>
     ),
@@ -33,7 +37,7 @@ const NAV_ITEMS: { id: Tab; label: string; icon: React.FC<{ active: boolean; col
     id: "grocery",
     label: "Groceries",
     icon: ({ active, color }) => (
-      <svg width="18" height="18" fill="none" stroke={active ? color : "currentColor"} strokeWidth="1.5" viewBox="0 0 24 24">
+      <svg width="17" height="17" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
       </svg>
     ),
@@ -42,7 +46,7 @@ const NAV_ITEMS: { id: Tab; label: string; icon: React.FC<{ active: boolean; col
     id: "workout",
     label: "Workout",
     icon: ({ active, color }) => (
-      <svg width="18" height="18" fill="none" stroke={active ? color : "currentColor"} strokeWidth="1.5" viewBox="0 0 24 24">
+      <svg width="17" height="17" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
       </svg>
     ),
@@ -51,7 +55,7 @@ const NAV_ITEMS: { id: Tab; label: string; icon: React.FC<{ active: boolean; col
     id: "plans",
     label: "Meal Plans",
     icon: ({ active, color }) => (
-      <svg width="18" height="18" fill="none" stroke={active ? color : "currentColor"} strokeWidth="1.5" viewBox="0 0 24 24">
+      <svg width="17" height="17" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
       </svg>
     ),
@@ -91,22 +95,25 @@ export function DesktopSidebar({
   return (
     <>
       <aside
-        className="hidden md:flex flex-col h-full w-64 flex-shrink-0 border-r"
-        style={{ background: "#0e0e0e", borderColor: "#1e1e1e" }}
+        className="hidden md:flex flex-col h-full w-64 flex-shrink-0"
+        style={{
+          background: "#0e0e0e",
+          borderRight: "0.5px solid rgba(84,84,88,0.35)",
+        }}
       >
         {/* Logo */}
-        <div className="px-6 pt-8 pb-6">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-[#6a6a6a]">Personal</p>
+        <div className="px-6 pt-9 pb-7">
           <h1
-            className="text-4xl font-black leading-none"
-            style={{ fontFamily: "var(--font-display)", color: "#b6ff4a" }}
+            className="text-[32px] font-bold leading-none tracking-tight"
+            style={{ color: "#b6ff4a", letterSpacing: "-0.03em" }}
           >
             FuelLog
           </h1>
+          <p className="text-xs font-medium text-[#6a6a6a] mt-1">Personal Nutrition</p>
         </div>
 
         {/* Nav */}
-        <nav className="flex flex-col gap-1 px-3 mb-6">
+        <nav className="flex flex-col gap-0.5 px-3 mb-5">
           {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
             const isActive = id === activeTab;
             const color = ACCENT[id];
@@ -115,90 +122,86 @@ export function DesktopSidebar({
                 key={id}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => onTabChange(id)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-left relative"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-left"
                 style={{
-                  background: isActive ? `${color}14` : "transparent",
-                  color: isActive ? color : "#6a6a6a",
+                  background: isActive ? `${color}16` : "transparent",
+                  color: isActive ? color : "rgba(235,235,245,0.45)",
                 }}
               >
-                <Icon active={isActive} color={color} />
+                <Icon active={isActive} color={isActive ? color : "rgba(235,235,245,0.45)"} />
                 <span className="text-sm font-medium">{label}</span>
-                {isActive && (
-                  <motion.div
-                    layoutId="sidebar-pip"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full"
-                    style={{ background: color }}
-                    transition={{ type: "spring", stiffness: 500, damping: 40 }}
-                  />
-                )}
               </motion.button>
             );
           })}
         </nav>
 
         {/* Divider */}
-        <div className="mx-6 mb-5 h-px" style={{ background: "#1e1e1e" }} />
+        <div className="mx-5 mb-5 h-px" style={{ background: "rgba(84,84,88,0.3)" }} />
 
         {/* Today's goals */}
-        <div className="flex-1 px-6 overflow-y-auto">
+        <div className="flex-1 px-5 overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-[10px] uppercase tracking-[0.15em] text-[#6a6a6a]">Today's progress</p>
+            <p className="text-xs font-semibold text-[#6a6a6a]">Today's Progress</p>
             <motion.button
               whileTap={{ scale: 0.88 }}
               onClick={() => setGoalsOpen(true)}
-              className="text-[10px] uppercase tracking-wider"
+              className="text-xs font-medium"
               style={{ color: "#b6ff4a" }}
             >
-              {goals ? "Edit" : "Set goals"}
+              {goals ? "Edit" : "Set Goals"}
             </motion.button>
           </div>
 
           {goals ? (
             <div className="space-y-1">
-              {/* Big calorie hero */}
+              {/* Calorie hero */}
               <div
-                className="rounded-2xl p-4 mb-4"
-                style={{ background: "#1a1a1a" }}
+                className="rounded-2xl p-4 mb-4 animate-gradient-border"
+                style={{
+                  background: "linear-gradient(#1a1a1a, #1a1a1a) padding-box, conic-gradient(from var(--border-angle), rgba(255,255,255,0.06) 80%, #b6ff4a 86%, #4abaff 90%, #b6ff4a 94%, rgba(255,255,255,0.06)) border-box",
+                  border: "1px solid transparent",
+                }}
               >
-                {/* Calorie arc */}
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className="text-[9px] uppercase tracking-[0.15em] text-[#6a6a6a]">
+                    <p className="text-[10px] font-medium text-[#6a6a6a]">
                       {calorieOver ? "Over by" : "Remaining"}
                     </p>
                     <p
-                      className="text-[42px] font-black leading-none"
+                      className="text-[40px] font-bold leading-none"
                       style={{
-                        fontFamily: "var(--font-display)",
                         color: calorieOver ? "#ff453a" : "#b6ff4a",
+                        letterSpacing: "-0.04em",
                       }}
                     >
                       {calorieRemaining}
                     </p>
-                    <p className="text-[9px] text-[#6a6a6a]">of {goals.calories} kcal</p>
+                    <p className="text-[10px] text-[#6a6a6a] font-medium mt-0.5">
+                      of {goals.calories} kcal
+                    </p>
                   </div>
 
-                  {/* Mini donut */}
-                  <svg width="56" height="56" viewBox="0 0 56 56">
-                    <circle cx="28" cy="28" r="22" fill="none" stroke="#252525" strokeWidth="6" />
+                  {/* Donut */}
+                  <svg width="52" height="52" viewBox="0 0 52 52">
+                    <circle cx="26" cy="26" r="20" fill="none" stroke="#252525" strokeWidth="5.5" />
                     <motion.circle
-                      cx="28"
-                      cy="28"
-                      r="22"
+                      cx="26"
+                      cy="26"
+                      r="20"
                       fill="none"
                       stroke={calorieOver ? "#ff453a" : "#b6ff4a"}
-                      strokeWidth="6"
+                      strokeWidth="5.5"
                       strokeLinecap="round"
-                      strokeDasharray={`${2 * Math.PI * 22}`}
-                      initial={{ strokeDashoffset: 2 * Math.PI * 22 }}
-                      animate={{ strokeDashoffset: (1 - caloriePct) * 2 * Math.PI * 22 }}
+                      strokeDasharray={`${2 * Math.PI * 20}`}
+                      initial={{ strokeDashoffset: 2 * Math.PI * 20 }}
+                      animate={{ strokeDashoffset: (1 - caloriePct) * 2 * Math.PI * 20 }}
                       transition={{ duration: 0.8, ease: "easeOut" }}
-                      transform="rotate(-90 28 28)"
+                      transform="rotate(-90 26 26)"
                     />
                   </svg>
                 </div>
 
-                {/* Consumed bar */}
+                {/* Track */}
                 <div className="h-1 rounded-full overflow-hidden" style={{ background: "#252525" }}>
                   <motion.div
                     className="h-full rounded-full"
@@ -208,9 +211,9 @@ export function DesktopSidebar({
                     transition={{ duration: 0.8, ease: "easeOut" }}
                   />
                 </div>
-                <div className="flex justify-between mt-1">
-                  <span className="text-[9px] text-[#6a6a6a]">{Math.round(totals.calories ?? 0)} consumed</span>
-                  <span className="text-[9px] text-[#6a6a6a]">{goals.calories} goal</span>
+                <div className="flex justify-between mt-1.5">
+                  <span className="text-[10px] font-medium text-[#6a6a6a]">{Math.round(totals.calories ?? 0)} consumed</span>
+                  <span className="text-[10px] font-medium text-[#6a6a6a]">{goals.calories} goal</span>
                 </div>
               </div>
 
@@ -246,17 +249,19 @@ export function DesktopSidebar({
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setGoalsOpen(true)}
-                className="w-full rounded-2xl border border-dashed py-6 text-center"
-                style={{ borderColor: "#3a3a3a" }}
+                className="w-full rounded-2xl py-6 text-center"
+                style={{
+                  border: "1px dashed rgba(84,84,88,0.5)",
+                  background: "transparent",
+                }}
               >
-                <p className="text-sm text-[#6a6a6a]">Set your daily goals</p>
-                <p className="text-[10px] text-[#3a3a3a] mt-1">Track progress against targets</p>
+                <p className="text-sm font-medium text-[#6a6a6a]">Set daily goals</p>
+                <p className="text-xs text-[#3a3a3a] mt-1">Track progress against targets</p>
               </motion.button>
             </div>
           )}
         </div>
 
-        {/* Bottom padding */}
         <div className="h-6" />
       </aside>
 

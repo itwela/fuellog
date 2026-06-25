@@ -39,10 +39,10 @@ export function GroceryView({ userId }: { userId: string }) {
   return (
     <div className="flex flex-col min-h-full pb-4">
       <div className="px-5 pt-12 pb-6">
-        <p className="text-[10px] font-light uppercase tracking-[0.15em] text-[#6a6a6a]">Reusable lists</p>
+        <p className="text-xs font-medium text-[#6a6a6a]">Reusable lists</p>
         <h1
-          className="text-[56px] leading-none font-black"
-          style={{ fontFamily: "var(--font-display)", color: ACCENT }}
+          className="text-[52px] leading-none font-bold"
+          style={{ color: ACCENT, letterSpacing: "-0.03em" }}
         >
           Groceries
         </h1>
@@ -58,7 +58,7 @@ export function GroceryView({ userId }: { userId: string }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               className="flex items-center gap-3 rounded-2xl px-4 py-4"
-              style={{ background: "#1a1a1a", borderLeft: `3px solid ${ACCENT}` }}
+              style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.06)" }}
             >
               <motion.button
                 whileTap={{ scale: 0.97 }}
@@ -112,7 +112,7 @@ export function GroceryView({ userId }: { userId: string }) {
                 onChange={(e) => setNewListName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                 placeholder="List name..."
-                className="flex-1 bg-[#1a1a1a] rounded-xl px-4 py-3 text-sm text-[#f2f2f2] placeholder-[#6a6a6a] outline-none"
+                className="flex-1 rounded-xl px-4 py-3 text-sm font-medium text-[#f2f2f2] placeholder-[#3a3a3a] outline-none" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.05)" }}
               />
               <motion.button
                 whileTap={{ scale: 0.93 }}
@@ -129,11 +129,11 @@ export function GroceryView({ userId }: { userId: string }) {
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={() => setAdding(!adding)}
-          className="w-full py-4 rounded-2xl font-bold text-base"
+          className="w-full py-3.5 rounded-2xl font-semibold text-[15px]"
           style={{
             background: adding ? "#252525" : ACCENT,
             color: adding ? "#6a6a6a" : "#0e0e0e",
-            fontFamily: "var(--font-display)",
+            letterSpacing: "-0.01em",
           }}
         >
           {adding ? "Cancel" : "New List"}

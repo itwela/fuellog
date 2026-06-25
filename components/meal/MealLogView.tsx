@@ -59,7 +59,7 @@ export function MealLogView({ userId }: { userId: string }) {
       {/* Header */}
       <div className="px-5 pt-12 pb-2 flex items-start justify-between">
         <div>
-          <p className="text-[10px] font-light uppercase tracking-[0.15em] text-[#6a6a6a]">
+          <p className="text-xs font-medium text-[#6a6a6a]">
             {isToday ? (
               calorieGoal > 0 ? (calorieOver ? "Over today's goal" : "Remaining today") : "Today"
             ) : (
@@ -70,15 +70,15 @@ export function MealLogView({ userId }: { userId: string }) {
             key={selectedISO}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-[72px] leading-none font-black"
+            className="text-[68px] leading-none font-bold"
             style={{
-              fontFamily: "var(--font-display)",
               color: calorieOver ? "#ff453a" : ACCENT,
+              letterSpacing: "-0.04em",
             }}
           >
             {calorieGoal > 0 ? calorieRemaining : Math.round(calorieConsumed)}
           </motion.h1>
-          <p className="text-[10px] font-light uppercase tracking-[0.15em] text-[#6a6a6a]">
+          <p className="text-xs font-medium text-[#6a6a6a]">
             {calorieGoal > 0
               ? `${Math.round(calorieConsumed)} of ${calorieGoal} kcal consumed`
               : "Calories logged"}
@@ -86,10 +86,10 @@ export function MealLogView({ userId }: { userId: string }) {
         </div>
 
         <motion.button
-          whileTap={{ scale: 0.9 }}
+          whileTap={{ scale: 0.92 }}
           onClick={() => setGoalsOpen(true)}
-          className="md:hidden mt-3 px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider border"
-          style={{ borderColor: "#3a3a3a", color: "#6a6a6a" }}
+          className="md:hidden mt-3 px-3.5 py-1.5 rounded-full text-xs font-medium"
+          style={{ background: "#1a1a1a", color: "#6a6a6a", border: "1px solid rgba(255,255,255,0.08)" }}
         >
           {goals ? "Goals" : "Set goals"}
         </motion.button>
@@ -105,7 +105,7 @@ export function MealLogView({ userId }: { userId: string }) {
 
       {/* Mobile: macro progress + sugar tally (selected day) */}
       <div className="px-5 mb-6 md:hidden space-y-3">
-        <p className="text-[10px] uppercase tracking-[0.15em] text-[#6a6a6a] px-0.5">Day progress</p>
+        <p className="text-xs font-medium text-[#6a6a6a] px-0.5">Day progress</p>
         {goals ? (
           <div className="rounded-2xl p-4 space-y-4" style={{ background: "#1a1a1a" }}>
             <MacroProgressBar label="Protein" current={totals.protein ?? 0} goal={goals.protein} color={ACCENT} />
@@ -124,7 +124,7 @@ export function MealLogView({ userId }: { userId: string }) {
 
       {/* Desktop: rings + sugar */}
       <div className="hidden md:flex flex-col gap-3 px-5 mb-6">
-        <p className="text-[10px] uppercase tracking-[0.15em] text-[#6a6a6a] px-0.5">Day progress</p>
+        <p className="text-xs font-medium text-[#6a6a6a] px-0.5">Day progress</p>
         <div className="flex gap-3">
           <MacroRing label="Protein" value={totals.protein ?? 0} unit="g" color={ACCENT} />
           <MacroRing label="Carbs" value={totals.carbs ?? 0} unit="g" color="#4abaff" />
@@ -138,8 +138,8 @@ export function MealLogView({ userId }: { userId: string }) {
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={() => setPlanPickerOpen(true)}
-          className="w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
-          style={{ background: "#1a1a1a", color: "#c084fc", border: "1px solid #c084fc33" }}
+          className="w-full py-2.5 rounded-xl text-xs font-medium flex items-center justify-center gap-2"
+          style={{ background: "#1a1a1a", color: "#c084fc", border: "1px solid rgba(192,132,252,0.2)" }}
         >
           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />

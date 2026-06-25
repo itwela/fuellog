@@ -23,11 +23,13 @@ export function PlanItemSheet({
   planId,
   accent,
   itemCount,
+  day,
   onClose,
 }: {
   planId: Id<"meal_plans">;
   accent: string;
   itemCount: number;
+  day?: string;
   onClose: () => void;
 }) {
   const [form, setForm] = useState<MacroForm>(EMPTY);
@@ -69,6 +71,7 @@ export function PlanItemSheet({
     await addItem({
       planId,
       name: form.name.trim(),
+      day,
       mealType: form.mealType,
       calories: form.calories ? Number(form.calories) : undefined,
       protein: form.protein ? Number(form.protein) : undefined,
@@ -104,7 +107,7 @@ export function PlanItemSheet({
 
         <div className="space-y-3">
           <div>
-            <label className="text-[10px] uppercase tracking-widest text-[#6a6a6a] block mb-1">
+            <label className="text-xs font-medium text-[#6a6a6a] block mb-1">
               Food name
               {loading && <span className="ml-2 normal-case text-[#6a6a6a]">estimating...</span>}
             </label>
@@ -119,7 +122,7 @@ export function PlanItemSheet({
           </div>
 
           <div>
-            <label className="text-[10px] uppercase tracking-widest text-[#6a6a6a] block mb-1">Meal type</label>
+            <label className="text-xs font-medium text-[#6a6a6a] block mb-1">Meal type</label>
             <div className="flex gap-2">
               {(["breakfast", "lunch", "dinner", "snack"] as MealType[]).map((t) => (
                 <button
@@ -140,7 +143,7 @@ export function PlanItemSheet({
           <div className="grid grid-cols-2 gap-2">
             {([["calories", "Calories", "kcal"], ["protein", "Protein", "g"], ["fat", "Fat", "g"], ["carbs", "Carbs", "g"]] as [keyof MacroForm, string, string][]).map(([field, label, unit]) => (
               <div key={field}>
-                <label className="text-[10px] uppercase tracking-widest text-[#6a6a6a] block mb-1">
+                <label className="text-xs font-medium text-[#6a6a6a] block mb-1">
                   {label} <span className="opacity-50">{unit}</span>
                 </label>
                 <input

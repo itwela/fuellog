@@ -54,6 +54,7 @@ export default defineSchema({
     archived: v.boolean(),
     createdAt: v.number(),
     updatedAt: v.number(),
+    estimatedCost: v.optional(v.number()),
   }).index("by_user", ["userId"]),
 
   grocery_list_items: defineTable({
@@ -126,6 +127,7 @@ export default defineSchema({
   meal_plan_items: defineTable({
     planId: v.id("meal_plans"),
     name: v.string(),
+    day: v.optional(v.string()),
     mealType: v.union(
       v.literal("breakfast"),
       v.literal("lunch"),

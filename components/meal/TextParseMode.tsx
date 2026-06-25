@@ -173,7 +173,7 @@ export function TextParseMode({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-[#6a6a6a]">Found {meals.length} meal{meals.length !== 1 ? "s" : ""}</p>
+            <p className="text-xs font-medium text-[#6a6a6a]">Found {meals.length} meal{meals.length !== 1 ? "s" : ""}</p>
             <p className="text-sm text-[#f2f2f2] font-medium">Review before logging</p>
           </div>
           <button
@@ -193,7 +193,7 @@ export function TextParseMode({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               className="rounded-2xl overflow-hidden"
-              style={{ background: "#252525", borderLeft: `3px solid ${MEAL_COLORS[meal.mealType]}` }}
+              style={{ background: "#252525", border: "1px solid rgba(255,255,255,0.06)" }}
             >
               {/* Header row */}
               <div className="flex items-center gap-2 px-4 pt-3 pb-2">
@@ -278,7 +278,7 @@ export function TextParseMode({
                         ["sugar", "Sugar g"],
                       ] as [keyof ParsedMeal, string][]).map(([field, label]) => (
                         <div key={field}>
-                          <label className="text-[9px] uppercase tracking-widest text-[#6a6a6a] block mb-0.5">{label}</label>
+                          <label className="text-[10px] font-medium text-[#6a6a6a] block mb-0.5">{label}</label>
                           <input
                             type="number"
                             value={meal[field] !== null ? String(meal[field]) : ""}
@@ -320,9 +320,9 @@ export function TextParseMode({
     <div className="space-y-4">
       <div>
         <div className="flex items-center gap-2 mb-1">
-          <p className="text-[10px] uppercase tracking-widest text-[#6a6a6a]">Describe what you ate</p>
+          <p className="text-xs font-medium text-[#6a6a6a]">Describe what you ate</p>
           <span
-            className="text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full"
+            className="text-[10px] font-medium px-2 py-0.5 rounded-full"
             style={{ background: `${accent}22`, color: accent }}
           >
             {new Date(logDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
@@ -392,7 +392,7 @@ export function TextParseMode({
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-[10px] uppercase tracking-widest text-center"
+          className="text-xs font-medium text-center"
           style={{ color: accent }}
         >
           Listening...

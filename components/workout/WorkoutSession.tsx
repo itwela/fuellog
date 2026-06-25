@@ -42,7 +42,7 @@ export function WorkoutSession({
       {/* Header */}
       <div className="px-5 pt-12 pb-4">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-[10px] uppercase tracking-widest text-[#6a6a6a]">
+          <p className="text-xs font-medium text-[#6a6a6a]">
             Exercise {currentIndex + 1} of {sessionExercises.length}
           </p>
           <motion.button
@@ -61,7 +61,7 @@ export function WorkoutSession({
           {exercise?.name}
         </h1>
         {exercise?.muscleGroup && (
-          <p className="text-[10px] uppercase tracking-widest text-[#6a6a6a] mt-1">{exercise.muscleGroup}</p>
+          <p className="text-xs font-medium text-[#6a6a6a] mt-1">{exercise.muscleGroup}</p>
         )}
       </div>
 
@@ -79,7 +79,7 @@ export function WorkoutSession({
 
       {/* Sets */}
       <div className="flex-1 px-4 space-y-2">
-        <p className="text-[10px] uppercase tracking-widest text-[#6a6a6a] mb-3">Sets</p>
+        <p className="text-xs font-medium text-[#6a6a6a] mb-3">Sets</p>
         {sets.map((set, i) => (
           <motion.div
             key={i}
@@ -87,12 +87,12 @@ export function WorkoutSession({
             className="flex items-center gap-3 rounded-2xl px-4 py-3"
             style={{
               background: set.completed ? "#252525" : "#1a1a1a",
-              borderLeft: `3px solid ${set.completed ? accent : "#3a3a3a"}`,
+              border: set.completed ? `1px solid ${accent}30` : "1px solid rgba(255,255,255,0.05)",
             }}
           >
             <span
-              className="text-2xl font-black w-8"
-              style={{ fontFamily: "var(--font-display)", color: set.completed ? accent : "#6a6a6a" }}
+              className="text-2xl font-bold w-8"
+              style={{ color: set.completed ? accent : "#6a6a6a", letterSpacing: "-0.02em" }}
             >
               {i + 1}
             </span>

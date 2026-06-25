@@ -1,11 +1,11 @@
-@import "tailwindcss";
-
+@import 'tailwindcss';
+@plugin 'lightswind/plugin';
 :root {
   /* Base */
   --bg-base: #0e0e0e;
   --bg-card: #1a1a1a;
   --bg-card-raised: #252525;
-  --bg-nav: rgba(10, 10, 10, 0.85);
+  --bg-nav: rgba(10, 10, 10, 0.92);
 
   /* Text */
   --text-primary: #f2f2f2;
@@ -20,6 +20,13 @@
   /* Semantic */
   --color-success: #b6ff4a;
   --color-error: #ff453a;
+
+  /* System font — resolves to SF Pro on Apple devices */
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Helvetica Neue", sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Helvetica Neue", sans-serif;
+
+  /* UI tokens */
+  --separator: rgba(84, 84, 88, 0.5);
 }
 
 @theme inline {
@@ -47,9 +54,26 @@ html {
 body {
   background: var(--bg-base);
   color: var(--text-primary);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
+  letter-spacing: -0.011em;
+}
+
+/* Gradient border animation */
+@property --border-angle {
+  inherits: false;
+  initial-value: 0deg;
+  syntax: '<angle>';
+}
+
+@keyframes border-spin {
+  to { --border-angle: 360deg; }
+}
+
+.animate-gradient-border {
+  animation: border-spin 4s linear infinite;
 }
 
 /* Hide scrollbars but keep scroll */

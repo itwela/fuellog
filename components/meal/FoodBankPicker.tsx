@@ -56,7 +56,7 @@ export function FoodBankPicker({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search your foods..."
-          className="w-full bg-[#1a1a1a] rounded-xl px-4 py-3 text-sm text-[#f2f2f2] placeholder-[#6a6a6a] outline-none mb-4"
+          className="w-full rounded-xl px-4 py-3 text-sm font-medium text-[#f2f2f2] placeholder-[#3a3a3a] outline-none mb-4" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.05)" }}
         />
         <div className="space-y-2">
           {results.map((entry) => (
@@ -65,7 +65,7 @@ export function FoodBankPicker({
               whileTap={{ scale: 0.97 }}
               onClick={() => onSelect(entry as FoodBankEntry)}
               className="w-full flex items-center justify-between rounded-xl px-4 py-3 text-left"
-              style={{ background: "#1a1a1a", borderLeft: `3px solid ${accent}` }}
+              style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.06)" }}
             >
               <div>
                 <p className="text-sm font-medium text-[#f2f2f2]">{entry.name}</p>

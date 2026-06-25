@@ -4,30 +4,45 @@ import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 
 const MUSCLE_GROUPS = ["Chest", "Back", "Shoulders", "Biceps", "Triceps", "Legs", "Glutes", "Core", "Cardio", "Full Body"];
+
+interface EditExercise {
+  _id: Id<"exercises">;
+  name: string;
+  muscleGroup?: string | null;
+  defaultSets?: number | null;
+  defaultReps?: string | null;
+  defaultWeight?: string | null;
+  gifUrl?: string | null;
+}
 
 export function AddExerciseSheet({
   userId,
   accent,
   onClose,
+  editExercise,
 }: {
   userId: string;
   accent: string;
   onClose: () => void;
+  editExercise?: EditExercise;
 }) {
-  const [name, setName] = useState("");
-  const [muscleGroup, setMuscleGroup] = useState("");
-  const [sets, setSets] = useState("3");
-  const [reps, setReps] = useState("10");
-  const [weight, setWeight] = useState("");
-  const [gifUrl, setGifUrl] = useState("");
+  const isEdit = !!editExercise;
+  const [name, setName] = useState(editExercise?.name ?? "");
+  const [muscleGroup, setMuscleGroup] = useState(editExercise?.muscleGroup ?? "");
+  const [sets, setSets] = useState(editExercise?.defaultSets?.toString() ?? "3");
+  const [reps, setReps] = useState(editExercise?.defaultReps ?? "10");
+  const [weight, setWeight] = useState(editExercise?.defaultWeight ?? "");
+  const [gifUrl, setGifUrl] = useState(editExercise?.gifUrl ?? "");
   const [uploading, setUploading] = useState(false);
   const [uploadedStorageId, setUploadedStorageId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const addExercise = useMutation(api.workout.addExercise);
+  const updateExercise = useMutation(api.workout.updateExercise);
   const generateUploadUrl = useMutation(api.fileStorage.generateUploadUrl);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -52,16 +67,29 @@ export function AddExerciseSheet({
 
   async function handleSave() {
     if (!name.trim()) return;
-    await addExercise({
-      userId,
-      name: name.trim(),
-      muscleGroup: muscleGroup || undefined,
-      defaultSets: sets ? Number(sets) : undefined,
-      defaultReps: reps || undefined,
-      defaultWeight: weight || undefined,
-      gifUrl: gifUrl.trim() || undefined,
-      imageStorageId: uploadedStorageId || undefined,
-    });
+    if (isEdit && editExercise) {
+      await updateExercise({
+        id: editExercise._id,
+        name: name.trim(),
+        muscleGroup: muscleGroup || undefined,
+        defaultSets: sets ? Number(sets) : undefined,
+        defaultReps: reps || undefined,
+        defaultWeight: weight || undefined,
+        gifUrl: gifUrl.trim() || undefined,
+        imageStorageId: uploadedStorageId || undefined,
+      });
+    } else {
+      await addExercise({
+        userId,
+        name: name.trim(),
+        muscleGroup: muscleGroup || undefined,
+        defaultSets: sets ? Number(sets) : undefined,
+        defaultReps: reps || undefined,
+        defaultWeight: weight || undefined,
+        gifUrl: gifUrl.trim() || undefined,
+        imageStorageId: uploadedStorageId || undefined,
+      });
+    }
     onClose();
   }
 
@@ -86,12 +114,12 @@ export function AddExerciseSheet({
       >
         <div className="w-10 h-1 bg-[#3a3a3a] rounded-full mx-auto mb-5" />
         <h2 className="text-xl font-bold mb-5" style={{ fontFamily: "var(--font-display)" }}>
-          Add Exercise
+          {isEdit ? "Edit Exercise" : "Add Exercise"}
         </h2>
 
         <div className="space-y-4">
           <div>
-            <label className="text-[10px] uppercase tracking-widest text-[#6a6a6a] block mb-1">Exercise name *</label>
+            <label className="text-xs font-medium text-[#6a6a6a] block mb-1">Exercise name *</label>
             <input
               autoFocus
               value={name}
@@ -102,7 +130,7 @@ export function AddExerciseSheet({
           </div>
 
           <div>
-            <label className="text-[10px] uppercase tracking-widest text-[#6a6a6a] block mb-2">Muscle group</label>
+            <label className="text-xs font-medium text-[#6a6a6a] block mb-2">Muscle group</label>
             <div className="flex flex-wrap gap-2">
               {MUSCLE_GROUPS.map((mg) => (
                 <button
@@ -127,7 +155,7 @@ export function AddExerciseSheet({
               ["Weight", weight, setWeight],
             ] as [string, string, (v: string) => void][]).map(([label, val, setter]) => (
               <div key={label}>
-                <label className="text-[10px] uppercase tracking-widest text-[#6a6a6a] block mb-1">{label}</label>
+                <label className="text-xs font-medium text-[#6a6a6a] block mb-1">{label}</label>
                 <input
                   type={label !== "Weight" ? "number" : "text"}
                   value={val}
@@ -141,7 +169,7 @@ export function AddExerciseSheet({
 
           {/* Media section */}
           <div>
-            <label className="text-[10px] uppercase tracking-widest text-[#6a6a6a] block mb-2">Exercise media</label>
+            <label className="text-xs font-medium text-[#6a6a6a] block mb-2">Exercise media</label>
 
             {/* Upload button */}
             <input
@@ -228,7 +256,7 @@ export function AddExerciseSheet({
             fontFamily: "var(--font-display)",
           }}
         >
-          Add Exercise
+          {isEdit ? "Save Changes" : "Add Exercise"}
         </motion.button>
       </motion.div>
     </>

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { PlanItemSheet } from "./PlanItemSheet";
+import { DraggableReorderList, type ReorderItem } from "@/components/lightswind/draggable-reorder-list";
 
 const ACCENT = "#c084fc";
 
@@ -28,6 +29,7 @@ export function PlanDetailSheet({
   const [addOpen, setAddOpen] = useState(false);
   const items = useQuery(api.mealplans.getItems, { planId }) ?? [];
   const removeItem = useMutation(api.mealplans.removeItem);
+  const reorderItems = useMutation(api.mealplans.reorderItems);
 
   return (
     <>
@@ -55,7 +57,7 @@ export function PlanDetailSheet({
 
         <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.15em] text-[#6a6a6a]">Meal Plan</p>
+            <p className="text-[10px] font-medium text-[#6a6a6a]">Meal Plan</p>
             <h2
               className="text-3xl font-black leading-tight"
               style={{ fontFamily: "var(--font-display)", color: ACCENT }}
@@ -81,47 +83,38 @@ export function PlanDetailSheet({
             <p className="text-[10px] text-[#3a3a3a] mt-1">Tap + to add meals to this plan</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-4">
             {["breakfast", "lunch", "dinner", "snack"].map((type) => {
-              const group = items.filter((i) => i.mealType === type);
+              const group = items.filter((i) => i.mealType === type).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
               if (group.length === 0) return null;
+              const reorderList: ReorderItem[] = group.map((item) => ({
+                id: item._id,
+                label: item.name,
+                description: [
+                  item.calories != null && `${item.calories} kcal`,
+                  item.protein != null && `P: ${item.protein}g`,
+                  item.carbs != null && `C: ${item.carbs}g`,
+                  item.fat != null && `F: ${item.fat}g`,
+                ].filter(Boolean).join(" · ") || undefined,
+              }));
               return (
                 <div key={type}>
-                  <p
-                    className="text-[10px] uppercase tracking-[0.15em] mb-2 px-1"
-                    style={{ color: TYPE_COLOR[type] }}
-                  >
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] mb-2 px-1" style={{ color: TYPE_COLOR[type] }}>
                     {type}
                   </p>
-                  {group.map((item) => (
-                    <motion.div
-                      key={item._id}
-                      layout
-                      className="flex items-center justify-between gap-3 rounded-2xl px-4 py-3 mb-1.5"
-                      style={{ background: "#1a1a1a", borderLeft: `3px solid ${TYPE_COLOR[type]}` }}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-[#f2f2f2] truncate">{item.name}</p>
-                        {item.calories != null && (
-                          <p className="text-[10px] text-[#6a6a6a] mt-0.5">
-                            {item.calories} kcal
-                            {item.protein != null && ` · P: ${item.protein}g`}
-                            {item.carbs != null && ` · C: ${item.carbs}g`}
-                            {item.fat != null && ` · F: ${item.fat}g`}
-                          </p>
-                        )}
-                      </div>
-                      <motion.button
-                        whileTap={{ scale: 0.85 }}
-                        onClick={() => removeItem({ id: item._id })}
-                        className="p-1 text-[#6a6a6a] shrink-0"
-                      >
-                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                        </svg>
-                      </motion.button>
-                    </motion.div>
-                  ))}
+                  <DraggableReorderList
+                    key={group.map(i => i._id).join(",")}
+                    items={reorderList}
+                    removable
+                    onReorder={(newOrder) => {
+                      const removed = reorderList.find(r => !newOrder.find(n => n.id === r.id));
+                      if (removed) {
+                        removeItem({ id: removed.id as Id<"meal_plan_items"> });
+                      } else {
+                        reorderItems({ ids: newOrder.map(i => i.id as Id<"meal_plan_items">) });
+                      }
+                    }}
+                  />
                 </div>
               );
             })}

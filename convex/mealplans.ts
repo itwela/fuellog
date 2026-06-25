@@ -65,6 +65,7 @@ export const addItem = mutation({
   args: {
     planId: v.id("meal_plans"),
     name: v.string(),
+    day: v.optional(v.string()),
     mealType: v.union(
       v.literal("breakfast"),
       v.literal("lunch"),
@@ -112,5 +113,12 @@ export const updateItem = mutation({
   },
   handler: async (ctx, { id, ...fields }) => {
     await ctx.db.patch(id, fields);
+  },
+});
+
+export const reorderItems = mutation({
+  args: { ids: v.array(v.id("meal_plan_items")) },
+  handler: async (ctx, { ids }) => {
+    await Promise.all(ids.map((id, i) => ctx.db.patch(id, { order: i })));
   },
 });

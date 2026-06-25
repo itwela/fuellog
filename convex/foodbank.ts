@@ -77,6 +77,22 @@ export const upsert = mutation({
   },
 });
 
+export const update = mutation({
+  args: {
+    id: v.id("food_bank"),
+    name: v.string(),
+    calories: v.optional(v.number()),
+    protein: v.optional(v.number()),
+    fat: v.optional(v.number()),
+    carbs: v.optional(v.number()),
+    fiber: v.optional(v.number()),
+    sugar: v.optional(v.number()),
+  },
+  handler: async (ctx, { id, ...fields }) => {
+    await ctx.db.patch(id, { ...fields, updatedAt: Date.now() });
+  },
+});
+
 export const setImage = mutation({
   args: { id: v.id("food_bank"), imageStorageId: v.string() },
   handler: async (ctx, { id, imageStorageId }) => {

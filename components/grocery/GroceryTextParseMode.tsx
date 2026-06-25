@@ -152,7 +152,7 @@ export function GroceryTextParseMode({
       <div className="space-y-3 pb-4">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-[#6a6a6a]">
+            <p className="text-xs font-medium text-[#6a6a6a]">
               Found {items.length} item{items.length !== 1 ? "s" : ""}
             </p>
             <p className="text-sm text-[#f2f2f2] font-medium">Review before adding</p>
@@ -175,7 +175,7 @@ export function GroceryTextParseMode({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               className="rounded-2xl overflow-hidden px-4 py-3 flex flex-col gap-2"
-              style={{ background: "#252525", borderLeft: `3px solid ${accent}` }}
+              style={{ background: "#252525", border: "1px solid rgba(255,255,255,0.06)" }}
             >
               <div className="flex items-start gap-2">
                 <input
@@ -194,7 +194,7 @@ export function GroceryTextParseMode({
               </div>
               <div className="flex gap-2">
                 <div className="flex-1 min-w-0">
-                  <label className="text-[9px] uppercase tracking-widest text-[#6a6a6a] block mb-0.5">Qty</label>
+                  <label className="text-[10px] font-medium text-[#6a6a6a] block mb-0.5">Qty</label>
                   <input
                     type="text"
                     value={row.quantity ?? ""}
@@ -204,7 +204,7 @@ export function GroceryTextParseMode({
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <label className="text-[9px] uppercase tracking-widest text-[#6a6a6a] block mb-0.5">Unit</label>
+                  <label className="text-[10px] font-medium text-[#6a6a6a] block mb-0.5">Unit</label>
                   <input
                     type="text"
                     value={row.unit ?? ""}
@@ -240,7 +240,7 @@ export function GroceryTextParseMode({
   return (
     <div className="space-y-4 pb-4">
       <div>
-        <p className="text-[10px] uppercase tracking-widest text-[#6a6a6a] mb-1">Paste or describe your list</p>
+        <p className="text-xs font-medium text-[#6a6a6a] mb-1">Paste or describe your list</p>
         <p className="text-xs text-[#6a6a6a]">
           Bullet list, recipe ingredients, a paragraph, or a voice note — AI will turn it into grocery rows with qty
           and unit when it can.
@@ -303,7 +303,7 @@ export function GroceryTextParseMode({
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-[10px] uppercase tracking-widest text-center"
+          className="text-xs font-medium text-center"
           style={{ color: accent }}
         >
           Listening…

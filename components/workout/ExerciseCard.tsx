@@ -23,12 +23,14 @@ export function ExerciseCard({
   selectable = false,
   selected = false,
   onToggleSelect,
+  onEdit,
 }: {
   exercise: Exercise;
   accent: string;
   selectable?: boolean;
   selected?: boolean;
   onToggleSelect?: () => void;
+  onEdit?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -45,8 +47,8 @@ export function ExerciseCard({
       accent={selected ? accent : "#3a3a3a"}
       className="rounded-2xl overflow-hidden"
       style={{
-        borderLeft: `3px solid ${selected ? accent : "#3a3a3a"}`,
-        outline: selected ? `1px solid ${accent}33` : "none",
+        outline: selected ? `1px solid ${accent}50` : "none",
+        background: selected ? `${accent}0a` : "#1a1a1a",
       }}
     >
       <div
@@ -89,6 +91,18 @@ export function ExerciseCard({
                 />
               </svg>
             )}
+            {!selectable && onEdit && (
+              <motion.button
+                whileTap={{ scale: 0.88 }}
+                onClick={(e) => { e.stopPropagation(); onEdit(); }}
+                className="pt-0.5"
+                style={{ color: "#4a4a4a" }}
+              >
+                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
+                </svg>
+              </motion.button>
+            )}
             {!selectable && (
               <motion.div animate={{ rotate: expanded ? 180 : 0 }} className="pt-0.5">
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -103,7 +117,7 @@ export function ExerciseCard({
           <div className={`flex items-center justify-between gap-2 ${selectable ? "pl-8" : ""}`}>
             <div className="flex flex-col items-start gap-0.5 min-w-0">
               {exercise.muscleGroup && (
-                <span className="text-[10px] uppercase tracking-wider text-[#6a6a6a] leading-none">
+                <span className="text-[10px] font-medium text-[#6a6a6a] leading-none">
                   {exercise.muscleGroup}
                 </span>
               )}

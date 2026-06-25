@@ -89,7 +89,7 @@ export function MonthCalendar({
         {/* Day headers */}
         <div className="grid grid-cols-7 mb-1">
           {DAY_HEADERS.map((d, i) => (
-            <div key={i} className="text-center text-[9px] uppercase tracking-wider text-[#6a6a6a] py-1">
+            <div key={i} className="text-center text-[10px] font-medium text-[#6a6a6a] py-1">
               {d}
             </div>
           ))}

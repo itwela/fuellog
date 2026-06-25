@@ -1,14 +1,18 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import type { Tab } from "@/app/page";
 
-const TABS: { id: Tab; label: string; icon: React.FC<{ active: boolean; color: string }> }[] = [
+const TABS: {
+  id: Tab;
+  label: string;
+  icon: (props: { active: boolean; color: string }) => React.ReactElement;
+}[] = [
   {
     id: "meal",
     label: "Log",
     icon: ({ active, color }) => (
-      <svg width="22" height="22" fill="none" stroke={active ? color : "currentColor"} strokeWidth="1.5" viewBox="0 0 24 24">
+      <svg width="25" height="25" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
       </svg>
     ),
@@ -17,7 +21,7 @@ const TABS: { id: Tab; label: string; icon: React.FC<{ active: boolean; color: s
     id: "food",
     label: "Bank",
     icon: ({ active, color }) => (
-      <svg width="22" height="22" fill="none" stroke={active ? color : "currentColor"} strokeWidth="1.5" viewBox="0 0 24 24">
+      <svg width="25" height="25" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-.375c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v.375c0 .621.504 1.125 1.125 1.125Z" />
       </svg>
     ),
@@ -26,7 +30,7 @@ const TABS: { id: Tab; label: string; icon: React.FC<{ active: boolean; color: s
     id: "grocery",
     label: "Shop",
     icon: ({ active, color }) => (
-      <svg width="22" height="22" fill="none" stroke={active ? color : "currentColor"} strokeWidth="1.5" viewBox="0 0 24 24">
+      <svg width="25" height="25" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
       </svg>
     ),
@@ -35,7 +39,7 @@ const TABS: { id: Tab; label: string; icon: React.FC<{ active: boolean; color: s
     id: "workout",
     label: "Train",
     icon: ({ active, color }) => (
-      <svg width="22" height="22" fill="none" stroke={active ? color : "currentColor"} strokeWidth="1.5" viewBox="0 0 24 24">
+      <svg width="25" height="25" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
       </svg>
     ),
@@ -44,7 +48,7 @@ const TABS: { id: Tab; label: string; icon: React.FC<{ active: boolean; color: s
     id: "plans",
     label: "Plans",
     icon: ({ active, color }) => (
-      <svg width="22" height="22" fill="none" stroke={active ? color : "currentColor"} strokeWidth="1.5" viewBox="0 0 24 24">
+      <svg width="25" height="25" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
       </svg>
     ),
@@ -59,6 +63,8 @@ const ACCENT: Record<Tab, string> = {
   plans: "#c084fc",
 };
 
+const INACTIVE = "rgba(235,235,245,0.32)";
+
 export function BottomNav({
   activeTab,
   onTabChange,
@@ -68,51 +74,43 @@ export function BottomNav({
 }) {
   return (
     <nav
-      className="relative z-50 flex items-center justify-around px-1 pb-safe"
+      className="relative z-50 flex items-center justify-around px-2"
       style={{
-        background: "rgba(10,10,10,0.85)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        borderTop: "1px solid rgba(255,255,255,0.05)",
-        minHeight: 60,
+        background: "rgba(10,10,10,0.92)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+        borderTop: "0.5px solid rgba(84,84,88,0.4)",
+        paddingBottom: "calc(10px + env(safe-area-inset-bottom))",
+        paddingTop: 10,
       }}
     >
       {TABS.map(({ id, label, icon: Icon }) => {
         const isActive = id === activeTab;
-        const color = ACCENT[id];
+        const color = isActive ? ACCENT[id] : INACTIVE;
 
         return (
           <motion.button
             key={id}
             onClick={() => onTabChange(id)}
-            whileTap={{ scale: 0.88 }}
-            className="flex flex-col items-center gap-0.5 px-2 py-2 relative"
-            style={{ opacity: isActive ? 1 : 0.4 }}
+            whileTap={{ scale: 0.86 }}
+            transition={{ type: "spring", stiffness: 500, damping: 38 }}
+            className="flex flex-col items-center justify-center gap-[3px] min-w-[56px] py-1"
           >
-            <Icon active={isActive} color={color} />
-            <AnimatePresence>
-              {isActive && (
-                <motion.span
-                  key="label"
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 4 }}
-                  transition={{ duration: 0.15 }}
-                  className="text-[8px] font-medium uppercase tracking-widest"
-                  style={{ color }}
-                >
-                  {label}
-                </motion.span>
-              )}
-            </AnimatePresence>
-            {isActive && (
-              <motion.div
-                layoutId="nav-pip"
-                className="absolute -bottom-0 h-[3px] w-5 rounded-full"
-                style={{ background: color }}
-                transition={{ type: "spring", stiffness: 500, damping: 40 }}
-              />
-            )}
+            <motion.div
+              animate={{ color }}
+              transition={{ duration: 0.18 }}
+              style={{ color }}
+            >
+              <Icon active={isActive} color={color} />
+            </motion.div>
+            <motion.span
+              animate={{ color }}
+              transition={{ duration: 0.18 }}
+              className="text-[10px] font-medium leading-none"
+              style={{ letterSpacing: "-0.01em" }}
+            >
+              {label}
+            </motion.span>
           </motion.button>
         );
       })}

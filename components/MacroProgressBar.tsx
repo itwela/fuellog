@@ -22,11 +22,11 @@ export function MacroProgressBar({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between">
-        <span className="text-[10px] uppercase tracking-[0.15em] text-[#6a6a6a]">{label}</span>
+        <span className="text-xs font-medium text-[#6a6a6a]">{label}</span>
         <div className="flex items-baseline gap-1">
           <span
-            className="text-lg font-black leading-none"
-            style={{ fontFamily: "var(--font-display)", color: over ? "#ff453a" : color }}
+            className="text-base font-bold leading-none"
+            style={{ color: over ? "#ff453a" : color, letterSpacing: "-0.02em" }}
           >
             {Math.round(current)}
           </span>
@@ -34,7 +34,6 @@ export function MacroProgressBar({
         </div>
       </div>
 
-      {/* Track */}
       <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "#252525" }}>
         <motion.div
           className="h-full rounded-full"
@@ -45,7 +44,7 @@ export function MacroProgressBar({
         />
       </div>
 
-      <p className="text-[10px] text-[#6a6a6a]">
+      <p className="text-[10px] font-medium text-[#6a6a6a]">
         {over
           ? `${Math.round(current - goal)}${unit} over`
           : `${Math.round(remaining)}${unit} remaining`}
