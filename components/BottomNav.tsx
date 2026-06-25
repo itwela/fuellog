@@ -9,6 +9,15 @@ const TABS: {
   icon: (props: { active: boolean; color: string }) => React.ReactElement;
 }[] = [
   {
+    id: "water",
+    label: "Water",
+    icon: ({ active, color }) => (
+      <svg width="25" height="25" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25S5.25 9.75 5.25 14.25a6.75 6.75 0 0 0 13.5 0C18.75 9.75 12 2.25 12 2.25Z" />
+      </svg>
+    ),
+  },
+  {
     id: "meal",
     label: "Log",
     icon: ({ active, color }) => (
@@ -50,15 +59,6 @@ const TABS: {
     icon: ({ active, color }) => (
       <svg width="25" height="25" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-      </svg>
-    ),
-  },
-  {
-    id: "water",
-    label: "Water",
-    icon: ({ active, color }) => (
-      <svg width="25" height="25" fill="none" stroke={color} strokeWidth={active ? "2" : "1.5"} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25S5.25 9.75 5.25 14.25a6.75 6.75 0 0 0 13.5 0C18.75 9.75 12 2.25 12 2.25Z" />
       </svg>
     ),
   },

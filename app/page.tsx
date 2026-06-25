@@ -28,7 +28,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>("meal");
   const [prevTab, setPrevTab] = useState<Tab>("meal");
 
-  const tabs: Tab[] = ["meal", "food", "grocery", "workout", "plans", "water"];
+  const tabs: Tab[] = ["water", "meal", "food", "grocery", "workout", "plans"];
   const direction = tabs.indexOf(activeTab) > tabs.indexOf(prevTab) ? 1 : -1;
 
   function handleTabChange(tab: Tab) {
