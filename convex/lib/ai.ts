@@ -56,11 +56,19 @@ function estimateModelChain(): string[] {
   return mergeLegacyFirst(DEFAULT_ESTIMATE_MODELS);
 }
 
-/** Vision defaults to the estimate chain (same multimodal models). */
+// Free vision-capable models on OpenRouter (support image_url content blocks)
+const DEFAULT_VISION_MODELS = [
+  "meta-llama/llama-3.2-11b-vision-instruct:free",
+  "google/gemini-2.0-flash-exp:free",
+  "qwen/qwen2.5-vl-7b-instruct:free",
+] as const;
+
 function visionModelChain(): string[] {
   const specific = splitModelList(process.env.OPENROUTER_MODELS_VISION);
   if (specific.length > 0) return specific;
-  return estimateModelChain();
+  const shared = sharedModelChain();
+  if (shared) return shared;
+  return [...DEFAULT_VISION_MODELS];
 }
 
 type OpenRouterChatResponse = {
@@ -510,9 +518,19 @@ ${text}`;
 
 export async function estimateMacrosFromImage(
   imageBase64: string,
-  mimeType: string
+  mimeType: string,
+  context?: string
 ): Promise<MacroEstimate> {
-  const prompt = `You are a nutrition expert analyzing a photo of food. Identify what food is shown and estimate its nutritional content for a typical serving size.
+  const contextLine = context?.trim()
+    ? `\nAdditional context from the user: "${context.trim()}". Use this to improve your identification and portion estimate.`
+    : "";
+
+  const prompt = `You are a nutrition expert analyzing a photo of food. Identify what food is shown and estimate its nutritional content for a typical serving size.${contextLine}
+
+Rules:
+- Use the image as primary evidence. Use the context clue (if any) to refine the food name and portion size.
+- Return numeric estimates only — never null, "?", or "unknown".
+- calories = kcal for that serving. protein, fat, carbs, fiber, sugar = grams.
 
 Respond ONLY with valid JSON in this exact format, no explanation:
 {

@@ -34,13 +34,14 @@ export const parseFromText = action({
   },
 });
 
-// AI: estimate macros from image (base64)
+// AI: estimate macros from image (base64) with optional user context
 export const estimateFromImage = action({
   args: {
     imageBase64: v.string(),
     mimeType: v.string(),
+    context: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
-    return await estimateMacrosFromImage(args.imageBase64, args.mimeType);
+    return await estimateMacrosFromImage(args.imageBase64, args.mimeType, args.context);
   },
 });

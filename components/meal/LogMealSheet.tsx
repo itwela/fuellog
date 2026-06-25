@@ -93,6 +93,8 @@ export function LogMealSheet({
   const [showFoodBank, setShowFoodBank] = useState(false);
   const [savedToFoodBank, setSavedToFoodBank] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoContext, setPhotoContext] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -143,15 +145,24 @@ export function LogMealSheet({
     }
   }
 
-  async function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+  function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const preview = URL.createObjectURL(file);
-    setPhotoPreview(preview);
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+    setPhotoContext("");
+  }
+
+  async function handleAnalyzePhoto() {
+    if (!photoFile) return;
     setLoading(true);
     try {
-      const base64 = await toBase64(file);
-      const result = await estimateImage({ imageBase64: base64, mimeType: file.type });
+      const base64 = await toBase64(photoFile);
+      const result = await estimateImage({
+        imageBase64: base64,
+        mimeType: photoFile.type,
+        context: photoContext.trim() || undefined,
+      });
       setForm({
         name: result.name,
         mealType: form.mealType,
@@ -166,9 +177,15 @@ export function LogMealSheet({
       setMode("manual");
     } finally {
       setLoading(false);
-      setPhotoPreview(null);
-      URL.revokeObjectURL(preview);
     }
+  }
+
+  function handleClearPhoto() {
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(null);
+    setPhotoFile(null);
+    setPhotoContext("");
+    if (fileRef.current) fileRef.current.value = "";
   }
 
   async function handleSave() {
@@ -340,7 +357,7 @@ export function LogMealSheet({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.15 }}
-              className="flex flex-col items-center gap-5 py-4"
+              className="flex flex-col gap-4"
             >
               <input
                 ref={fileRef}
@@ -352,7 +369,7 @@ export function LogMealSheet({
               />
 
               <AnimatePresence mode="wait">
-                {loading && photoPreview ? (
+                {loading ? (
                   /* ── Analyzing state ── */
                   <motion.div
                     key="analyzing"
@@ -360,102 +377,112 @@ export function LogMealSheet({
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.96 }}
                     transition={{ duration: 0.2 }}
-                    className="flex flex-col items-center gap-5 w-full"
+                    className="flex flex-col items-center gap-5 w-full py-4"
                   >
-                    {/* Photo with scan overlay */}
                     <div className="relative w-full rounded-2xl overflow-hidden" style={{ aspectRatio: "4/3" }}>
-                      {/* Photo */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={photoPreview}
-                        alt="food being analyzed"
-                        className="w-full h-full object-cover"
-                      />
-
-                      {/* Dark overlay */}
+                      <img src={photoPreview!} alt="food being analyzed" className="w-full h-full object-cover" />
                       <div className="absolute inset-0" style={{ background: "rgba(14,14,14,0.45)" }} />
-
-                      {/* Sweeping scan line */}
                       <motion.div
                         className="absolute inset-x-0 h-[2px] pointer-events-none"
-                        style={{
-                          background: `linear-gradient(90deg, transparent 0%, ${accent} 50%, transparent 100%)`,
-                          boxShadow: `0 0 14px 5px ${accent}55`,
-                          top: 0,
-                        }}
+                        style={{ background: `linear-gradient(90deg, transparent 0%, ${accent} 50%, transparent 100%)`, boxShadow: `0 0 14px 5px ${accent}55`, top: 0 }}
                         animate={{ top: ["0%", "100%", "0%"] }}
                         transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
                       />
-
-                      {/* Corner brackets */}
                       <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 rounded-tl" style={{ borderColor: accent }} />
                       <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 rounded-tr" style={{ borderColor: accent }} />
                       <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 rounded-bl" style={{ borderColor: accent }} />
                       <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 rounded-br" style={{ borderColor: accent }} />
-
-                      {/* Pulsing ring */}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         {[0, 1].map((i) => (
-                          <motion.div
-                            key={i}
-                            className="absolute rounded-full border"
-                            style={{ borderColor: `${accent}70` }}
+                          <motion.div key={i} className="absolute rounded-full border" style={{ borderColor: `${accent}70` }}
                             animate={{ width: [20, 100], height: [20, 100], opacity: [0.9, 0] }}
-                            transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.9 }}
-                          />
+                            transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.9 }} />
                         ))}
                       </div>
                     </div>
-
-                    {/* "Analyzing" label with dots */}
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-[#f2f2f2]">Analyzing your food</span>
                       <div className="flex gap-[5px] items-center">
                         {[0, 1, 2].map((i) => (
-                          <motion.span
-                            key={i}
-                            className="block w-[5px] h-[5px] rounded-full"
-                            style={{ background: accent }}
+                          <motion.span key={i} className="block w-[5px] h-[5px] rounded-full" style={{ background: accent }}
                             animate={{ opacity: [0.25, 1, 0.25] }}
-                            transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.22 }}
-                          />
+                            transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.22 }} />
                         ))}
                       </div>
                     </div>
-
-                    {/* Floating macro chips */}
                     <div className="flex gap-2 flex-wrap justify-center">
-                      {[
-                        { emoji: "🔥", label: "Calories" },
-                        { emoji: "💪", label: "Protein" },
-                        { emoji: "⚡", label: "Carbs" },
-                        { emoji: "🥑", label: "Fat" },
-                      ].map(({ emoji, label }, i) => (
-                        <motion.div
-                          key={label}
-                          className="px-3 py-1 rounded-full text-xs font-medium"
-                          style={{
-                            background: `${accent}18`,
-                            color: accent,
-                            border: `1px solid ${accent}35`,
-                          }}
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: i * 0.12, duration: 0.3 }}
-                        >
+                      {[{ emoji: "🔥", label: "Calories" }, { emoji: "💪", label: "Protein" }, { emoji: "⚡", label: "Carbs" }, { emoji: "🥑", label: "Fat" }].map(({ emoji, label }, i) => (
+                        <motion.div key={label} className="px-3 py-1 rounded-full text-xs font-medium"
+                          style={{ background: `${accent}18`, color: accent, border: `1px solid ${accent}35` }}
+                          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.12, duration: 0.3 }}>
                           {emoji} {label}
                         </motion.div>
                       ))}
                     </div>
                   </motion.div>
+                ) : photoPreview ? (
+                  /* ── Preview + context + analyze ── */
+                  <motion.div
+                    key="preview"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex flex-col gap-4 w-full"
+                  >
+                    {/* Photo preview with retake button */}
+                    <div className="relative w-full rounded-2xl overflow-hidden" style={{ aspectRatio: "4/3" }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={photoPreview} alt="food photo" className="w-full h-full object-cover" />
+                      <button
+                        onClick={handleClearPhoto}
+                        className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center"
+                        style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}
+                      >
+                        <svg width="13" height="13" fill="none" stroke="#f2f2f2" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Context input */}
+                    <div>
+                      <label className="text-xs font-medium text-[#6a6a6a] block mb-1.5">
+                        Add context <span className="opacity-50">(optional)</span>
+                      </label>
+                      <input
+                        value={photoContext}
+                        onChange={(e) => setPhotoContext(e.target.value)}
+                        placeholder="e.g. grilled salmon, large portion, no sauce"
+                        className="w-full rounded-xl px-4 py-3 text-sm text-[#f2f2f2] placeholder-[#4a4a4a] outline-none"
+                        style={{ background: "#252525", border: "1px solid rgba(255,255,255,0.06)" }}
+                        onKeyDown={(e) => e.key === "Enter" && handleAnalyzePhoto()}
+                      />
+                    </div>
+
+                    {/* Analyze button */}
+                    <motion.button
+                      whileTap={{ scale: 0.97 }}
+                      onClick={handleAnalyzePhoto}
+                      className="w-full py-3.5 rounded-2xl font-semibold text-[15px] flex items-center justify-center gap-2"
+                      style={{ background: accent, color: "#0e0e0e", letterSpacing: "-0.01em" }}
+                    >
+                      <svg width="16" height="16" fill="none" stroke="#0e0e0e" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
+                      </svg>
+                      Analyze Food
+                    </motion.button>
+                  </motion.div>
                 ) : (
-                  /* ── Camera button state ── */
+                  /* ── Camera button ── */
                   <motion.div
                     key="camera"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="flex flex-col items-center gap-4 py-4"
+                    className="flex flex-col items-center gap-4 py-6"
                   >
                     <motion.button
                       whileTap={{ scale: 0.93 }}
@@ -468,9 +495,7 @@ export function LogMealSheet({
                         <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
                       </svg>
                     </motion.button>
-                    <p className="text-sm text-[#6a6a6a] text-center">
-                      Tap to take or upload a photo
-                    </p>
+                    <p className="text-sm text-[#6a6a6a] text-center">Tap to take or upload a photo</p>
                   </motion.div>
                 )}
               </AnimatePresence>
