@@ -92,6 +92,7 @@ export function LogMealSheet({
   const [aiRan, setAiRan] = useState(() => !!editingMeal?.aiEstimated);
   const [showFoodBank, setShowFoodBank] = useState(false);
   const [savedToFoodBank, setSavedToFoodBank] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -145,6 +146,8 @@ export function LogMealSheet({
   async function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    const preview = URL.createObjectURL(file);
+    setPhotoPreview(preview);
     setLoading(true);
     try {
       const base64 = await toBase64(file);
@@ -163,6 +166,8 @@ export function LogMealSheet({
       setMode("manual");
     } finally {
       setLoading(false);
+      setPhotoPreview(null);
+      URL.revokeObjectURL(preview);
     }
   }
 
@@ -260,47 +265,54 @@ export function LogMealSheet({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 320, damping: 38 }}
-        className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl px-5 pt-4 pb-8 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[480px] md:rounded-3xl"
+        className="fixed inset-x-0 bottom-0 z-50 px-5 pt-3 pb-8 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[480px]"
         style={{
           background: "#1a1a1a",
-          // Use the full dynamic viewport and leave room to scroll past the bottom controls
-          // (prevents the last button from being hidden behind mobile browser UI / bottom nav).
+          borderRadius: "20px 20px 0 0",
           maxHeight: "calc(100dvh - 16px)",
           overflowY: "auto",
           paddingBottom: "calc(2rem + env(safe-area-inset-bottom) + 84px)",
           overscrollBehavior: "contain",
+          border: "1px solid rgba(255,255,255,0.06)",
         }}
       >
         {/* Handle (mobile only) */}
-        <div className="w-10 h-1 bg-[#3a3a3a] rounded-full mx-auto mb-5 md:hidden" />
+        <div
+          className="w-9 h-[5px] rounded-full mx-auto mt-1 mb-6 md:hidden"
+          style={{ background: "rgba(84,84,88,0.6)" }}
+        />
 
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
-            {isEdit ? "Edit meal" : "Log Meal"}
+          <h2 className="text-xl font-semibold" style={{ letterSpacing: "-0.02em" }}>
+            {isEdit ? "Edit Meal" : "Log Meal"}
           </h2>
           {(isEdit || mode !== "text") && (
             <button
               type="button"
               onClick={() => setShowFoodBank(true)}
-              className="px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider border transition-colors"
-              style={{ borderColor: "#3a3a3a", color: "#b6b6b6", background: "#252525" }}
+              className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+              style={{ color: accent, background: `${accent}14` }}
             >
-              From Food Bank
+              Food Bank
             </button>
           )}
         </div>
 
-        {/* Mode toggle */}
+        {/* Mode toggle — Apple segmented control */}
         {!isEdit && (
-          <div className="flex rounded-xl p-1 mb-5" style={{ background: "#252525" }}>
+          <div
+            className="flex rounded-[10px] p-[3px] mb-5"
+            style={{ background: "rgba(84,84,88,0.22)" }}
+          >
             {MODES.map(({ id, label }) => (
               <button
                 key={id}
                 onClick={() => setMode(id)}
-                className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="flex-1 py-[7px] rounded-[8px] text-sm font-medium transition-all"
                 style={{
-                  background: mode === id ? accent : "transparent",
-                  color: mode === id ? "#0e0e0e" : "#6a6a6a",
+                  background: mode === id ? "#3a3a3c" : "transparent",
+                  color: mode === id ? "#f2f2f2" : "#6a6a6a",
+                  boxShadow: mode === id ? "0 1px 3px rgba(0,0,0,0.3)" : "none",
                 }}
               >
                 {label}
@@ -328,7 +340,7 @@ export function LogMealSheet({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.15 }}
-              className="flex flex-col items-center gap-4 py-8"
+              className="flex flex-col items-center gap-5 py-4"
             >
               <input
                 ref={fileRef}
@@ -338,27 +350,130 @@ export function LogMealSheet({
                 className="hidden"
                 onChange={handlePhoto}
               />
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => fileRef.current?.click()}
-                disabled={loading}
-                className="w-24 h-24 rounded-full flex items-center justify-center"
-                style={{ background: accent }}
-              >
-                {loading ? (
-                  <svg className="animate-spin" width="28" height="28" fill="none" stroke="#0e0e0e" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" d="M12 3a9 9 0 1 1 0 18A9 9 0 0 1 12 3Z" />
-                  </svg>
+
+              <AnimatePresence mode="wait">
+                {loading && photoPreview ? (
+                  /* ── Analyzing state ── */
+                  <motion.div
+                    key="analyzing"
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.96 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex flex-col items-center gap-5 w-full"
+                  >
+                    {/* Photo with scan overlay */}
+                    <div className="relative w-full rounded-2xl overflow-hidden" style={{ aspectRatio: "4/3" }}>
+                      {/* Photo */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photoPreview}
+                        alt="food being analyzed"
+                        className="w-full h-full object-cover"
+                      />
+
+                      {/* Dark overlay */}
+                      <div className="absolute inset-0" style={{ background: "rgba(14,14,14,0.45)" }} />
+
+                      {/* Sweeping scan line */}
+                      <motion.div
+                        className="absolute inset-x-0 h-[2px] pointer-events-none"
+                        style={{
+                          background: `linear-gradient(90deg, transparent 0%, ${accent} 50%, transparent 100%)`,
+                          boxShadow: `0 0 14px 5px ${accent}55`,
+                          top: 0,
+                        }}
+                        animate={{ top: ["0%", "100%", "0%"] }}
+                        transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
+                      />
+
+                      {/* Corner brackets */}
+                      <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 rounded-tl" style={{ borderColor: accent }} />
+                      <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 rounded-tr" style={{ borderColor: accent }} />
+                      <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 rounded-bl" style={{ borderColor: accent }} />
+                      <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 rounded-br" style={{ borderColor: accent }} />
+
+                      {/* Pulsing ring */}
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        {[0, 1].map((i) => (
+                          <motion.div
+                            key={i}
+                            className="absolute rounded-full border"
+                            style={{ borderColor: `${accent}70` }}
+                            animate={{ width: [20, 100], height: [20, 100], opacity: [0.9, 0] }}
+                            transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.9 }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* "Analyzing" label with dots */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-[#f2f2f2]">Analyzing your food</span>
+                      <div className="flex gap-[5px] items-center">
+                        {[0, 1, 2].map((i) => (
+                          <motion.span
+                            key={i}
+                            className="block w-[5px] h-[5px] rounded-full"
+                            style={{ background: accent }}
+                            animate={{ opacity: [0.25, 1, 0.25] }}
+                            transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.22 }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Floating macro chips */}
+                    <div className="flex gap-2 flex-wrap justify-center">
+                      {[
+                        { emoji: "🔥", label: "Calories" },
+                        { emoji: "💪", label: "Protein" },
+                        { emoji: "⚡", label: "Carbs" },
+                        { emoji: "🥑", label: "Fat" },
+                      ].map(({ emoji, label }, i) => (
+                        <motion.div
+                          key={label}
+                          className="px-3 py-1 rounded-full text-xs font-medium"
+                          style={{
+                            background: `${accent}18`,
+                            color: accent,
+                            border: `1px solid ${accent}35`,
+                          }}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.12, duration: 0.3 }}
+                        >
+                          {emoji} {label}
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
                 ) : (
-                  <svg width="28" height="28" fill="none" stroke="#0e0e0e" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
-                  </svg>
+                  /* ── Camera button state ── */
+                  <motion.div
+                    key="camera"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex flex-col items-center gap-4 py-4"
+                  >
+                    <motion.button
+                      whileTap={{ scale: 0.93 }}
+                      onClick={() => fileRef.current?.click()}
+                      className="w-24 h-24 rounded-full flex items-center justify-center"
+                      style={{ background: accent }}
+                    >
+                      <svg width="28" height="28" fill="none" stroke="#0e0e0e" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                      </svg>
+                    </motion.button>
+                    <p className="text-sm text-[#6a6a6a] text-center">
+                      Tap to take or upload a photo
+                    </p>
+                  </motion.div>
                 )}
-              </motion.button>
-              <p className="text-sm text-[#6a6a6a] text-center">
-                {loading ? "Analyzing photo..." : "Tap to take or upload a photo"}
-              </p>
+              </AnimatePresence>
             </motion.div>
           ) : (isEdit || mode === "manual") ? (
             <motion.div
@@ -372,7 +487,7 @@ export function LogMealSheet({
               {/* Food name */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-[10px] uppercase tracking-widest text-[#6a6a6a]">Food name</label>
+                  <label className="text-xs font-medium text-[#6a6a6a]">Food name</label>
                   {loading && (
                     <span className="text-[10px] text-[#6a6a6a] flex items-center gap-1">
                       <svg className="animate-spin w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -384,7 +499,7 @@ export function LogMealSheet({
                   {aiRan && !loading && (
                     <button
                       onClick={handleEstimateText}
-                      className="text-[10px] uppercase tracking-wider"
+                      className="text-xs font-medium"
                       style={{ color: accent }}
                     >
                       Re-estimate
@@ -407,19 +522,19 @@ export function LogMealSheet({
 
               {/* Meal type */}
               <div>
-                <label className="text-[10px] uppercase tracking-widest text-[#6a6a6a] block mb-1">Meal type</label>
+                <label className="text-xs font-medium text-[#6a6a6a] block mb-1">Meal type</label>
                 <div className="flex gap-2">
                   {(["breakfast", "lunch", "dinner", "snack"] as MealType[]).map((t) => (
                     <button
                       key={t}
                       onClick={() => set("mealType", t)}
-                      className="flex-1 py-2 rounded-xl text-xs font-medium"
+                      className="flex-1 py-2 rounded-[8px] text-xs font-medium transition-all capitalize"
                       style={{
-                        background: form.mealType === t ? accent : "#252525",
-                        color: form.mealType === t ? "#0e0e0e" : "#6a6a6a",
+                        background: form.mealType === t ? "#3a3a3c" : "transparent",
+                        color: form.mealType === t ? "#f2f2f2" : "#6a6a6a",
                       }}
                     >
-                      {t === "breakfast" ? "Breakfast" : t === "lunch" ? "Lunch" : t === "dinner" ? "Dinner" : "Snack"}
+                      {t}
                     </button>
                   ))}
                 </div>
@@ -436,15 +551,16 @@ export function LogMealSheet({
                   ["sugar", "Sugar", "g"],
                 ] as [keyof MacroForm, string, string][]).map(([field, label, unit]) => (
                   <div key={field}>
-                    <label className="text-[10px] uppercase tracking-widest text-[#6a6a6a] block mb-1">
-                      {label} <span className="opacity-50">{unit}</span>
+                    <label className="text-xs font-medium text-[#6a6a6a] block mb-1">
+                      {label} <span className="opacity-50 text-[10px]">{unit}</span>
                     </label>
                     <input
                       type="number"
                       value={form[field]}
                       onChange={(e) => set(field, e.target.value)}
                       placeholder="0"
-                      className="w-full bg-[#252525] rounded-xl px-4 py-3 text-sm text-[#f2f2f2] placeholder-[#6a6a6a] outline-none"
+                      className="w-full rounded-xl px-4 py-3 text-sm font-medium text-[#f2f2f2] placeholder-[#3a3a3a] outline-none"
+                      style={{ background: "#252525", border: "1px solid rgba(255,255,255,0.04)" }}
                     />
                   </div>
                 ))}
@@ -462,7 +578,7 @@ export function LogMealSheet({
                   type="button"
                   onClick={handleSaveToFoodBank}
                   disabled={!form.name.trim()}
-                  className="px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider border transition-colors"
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
                   style={{
                     borderColor: "#3a3a3a",
                     background: "#252525",
@@ -476,18 +592,18 @@ export function LogMealSheet({
               </div>
 
               <motion.button
-                whileTap={{ scale: 0.96 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={handleSave}
                 disabled={!form.name.trim()}
-                className="w-full mt-2 py-4 rounded-2xl font-bold text-base"
+                className="w-full mt-2 py-3.5 rounded-2xl font-semibold text-[15px]"
                 style={{
                   background: accent,
                   color: "#0e0e0e",
-                  opacity: form.name.trim() ? 1 : 0.4,
-                  fontFamily: "var(--font-display)",
+                  opacity: form.name.trim() ? 1 : 0.35,
+                  letterSpacing: "-0.01em",
                 }}
               >
-                {isEdit ? "Save changes" : "Log Meal"}
+                {isEdit ? "Save Changes" : "Log Meal"}
               </motion.button>
             </motion.div>
           ) : null}

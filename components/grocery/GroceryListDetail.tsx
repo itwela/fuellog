@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { AliveCard } from "@/components/AliveCard";
 import { GroceryTextParseMode } from "./GroceryTextParseMode";
+import { DraggableReorderList, type ReorderItem } from "@/components/lightswind/draggable-reorder-list";
 
 /** Clear “done” accent — filled circle + border */
 const DONE_GREEN = "#34c759";
@@ -155,19 +156,56 @@ export function GroceryListDetail({
   const [newQty, setNewQty] = useState("");
   const [shopping, setShopping] = useState(false);
   const [listTab, setListTab] = useState<"list" | "ai">("list");
+  const [costInput, setCostInput] = useState<string>("");
+  const [editingItem, setEditingItem] = useState<Doc<"grocery_list_items"> | null>(null);
+  const [editName, setEditName] = useState("");
 
   useEffect(() => {
     if (shopping) setListTab("list");
   }, [shopping]);
 
+  const listData = useQuery(api.grocery.getList, { listId });
   const items = useQuery(api.grocery.getItems, { listId }) ?? [];
   const addItem = useMutation(api.grocery.addItem);
   const toggleItem = useMutation(api.grocery.toggleItem);
   const removeItem = useMutation(api.grocery.removeItem);
   const resetChecks = useMutation(api.grocery.resetChecks);
+  const reorderItems = useMutation(api.grocery.reorderItems);
+  const updateItemMeta = useMutation(api.grocery.updateItemMeta);
+  const updateListMeta = useMutation(api.grocery.updateListMeta);
 
   const unchecked = items.filter((i) => !i.checked).sort((a, b) => a.order - b.order);
   const checked = items.filter((i) => i.checked).sort((a, b) => a.order - b.order);
+
+  // Sync cost input when list data loads
+  useEffect(() => {
+    if (listData?.estimatedCost != null) {
+      setCostInput(String(listData.estimatedCost));
+    }
+  }, [listData?.estimatedCost]);
+
+  function commitCost() {
+    const val = parseFloat(costInput);
+    const current = listData?.estimatedCost;
+    if (costInput.trim() === "" && current != null) {
+      void updateListMeta({ listId, estimatedCost: undefined });
+    } else if (!isNaN(val) && val !== current) {
+      void updateListMeta({ listId, estimatedCost: val });
+    }
+  }
+
+  function openEditItem(id: string) {
+    const item = unchecked.find((i) => i._id === id);
+    if (!item) return;
+    setEditingItem(item);
+    setEditName(item.name);
+  }
+
+  async function handleSaveItemName() {
+    if (!editingItem || !editName.trim()) return;
+    await updateItemMeta({ id: editingItem._id, name: editName.trim() });
+    setEditingItem(null);
+  }
 
   async function handleAdd() {
     if (!newItem.trim()) return;
@@ -196,8 +234,8 @@ export function GroceryListDetail({
           </svg>
         </motion.button>
         <h1
-          className="text-[40px] leading-none font-black flex-1"
-          style={{ fontFamily: "var(--font-display)", color: accent }}
+          className="text-[36px] leading-none font-bold flex-1"
+          style={{ color: accent, letterSpacing: "-0.03em" }}
         >
           List
         </h1>
@@ -246,78 +284,66 @@ export function GroceryListDetail({
           <GroceryTextParseMode listId={listId} accent={accent} onDone={() => setListTab("list")} />
         ) : (
           <>
+          {/* Non-shopping: draggable reorder list */}
+          {!shopping && (
+            <DraggableReorderList
+              key={unchecked.map(i => i._id).join(",")}
+              items={unchecked.map((item): ReorderItem => ({
+                id: item._id,
+                label: item.name,
+                description: item.unit || undefined,
+                quantity: parseQtyCount(item.quantity),
+              }))}
+              removable
+              onEditItem={openEditItem}
+              onQuantityChange={(id, qty) => {
+                void updateItemMeta({ id: id as Id<"grocery_list_items">, quantity: String(qty) });
+              }}
+              onReorder={(newOrder) => {
+                const wasRemoved = newOrder.length < unchecked.length;
+                if (wasRemoved) {
+                  const removedId = unchecked.find(i => !newOrder.find(n => n.id === i._id))?._id;
+                  if (removedId) removeItem({ id: removedId });
+                } else {
+                  reorderItems({ ids: newOrder.map(i => i.id as Id<"grocery_list_items">) });
+                }
+              }}
+            />
+          )}
+
+          {/* Shopping mode: checkbox list */}
+          {shopping && (
             <AnimatePresence>
-              {(shopping ? unchecked : items.sort((a, b) => a.order - b.order)).map((item) => {
-                const done = item.checked;
-                const rowAccent = done ? DONE_GREEN : accent;
-                return (
+              {unchecked.map((item) => (
                   <AliveCard
                     key={item._id}
                     seed={`groceryItem:${item._id}`}
-                    accent={rowAccent}
-                    className={`flex flex-col gap-2 px-4 py-3 transition-colors ${done ? "ring-1 ring-[#34c759]/35" : ""}`}
-                    style={{
-                      borderLeft: `3px solid ${rowAccent}`,
-                      background: done ? "rgba(52, 199, 89, 0.07)" : undefined,
-                    }}
+                    accent={accent}
+                    className="flex flex-col gap-2 px-4 py-3"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-2 flex-1 min-w-0">
-                        <motion.button
-                          type="button"
-                          whileTap={{ scale: 0.8 }}
-                          onClick={() => toggleItem({ id: item._id, checked: !item.checked })}
-                          className="w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5"
-                          style={{
-                            borderColor: done ? DONE_GREEN : accent,
-                            background: done ? DONE_GREEN : "transparent",
-                            boxShadow: done ? `0 0 0 1px ${DONE_GREEN}40` : undefined,
-                          }}
-                          aria-label={done ? "Mark not done" : "Mark done"}
-                        >
-                          {done && (
-                            <svg width="14" height="14" fill="none" stroke="#fff" strokeWidth="2.5" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                            </svg>
-                          )}
-                        </motion.button>
-                        <p
-                          className="font-medium text-sm leading-snug flex-1 min-w-0 line-clamp-2 break-words"
-                          style={{
-                            color: done ? "#9adb9f" : "#f2f2f2",
-                            textDecoration: done ? "line-through" : "none",
-                            textDecorationColor: "rgba(52,199,89,0.5)",
-                          }}
-                        >
-                          {item.name}
-                        </p>
-                      </div>
-                      {!shopping && (
-                        <motion.button
-                          type="button"
-                          whileTap={{ scale: 0.85 }}
-                          onClick={() => removeItem({ id: item._id })}
-                          className="p-1 rounded-full shrink-0 -mr-0.5"
-                          style={{ color: "#6a6a6a" }}
-                          aria-label="Remove item"
-                        >
-                          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                          </svg>
-                        </motion.button>
-                      )}
+                    <div className="flex items-start gap-2 flex-1 min-w-0">
+                      <motion.button
+                        type="button"
+                        whileTap={{ scale: 0.8 }}
+                        onClick={() => toggleItem({ id: item._id, checked: true })}
+                        className="w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5"
+                        style={{ borderColor: accent, background: "transparent" }}
+                        aria-label="Mark done"
+                      />
+                      <p className="font-medium text-sm leading-snug flex-1 min-w-0 line-clamp-2 break-words" style={{ color: "#f2f2f2" }}>
+                        {item.name}
+                      </p>
                     </div>
-
-                    <GroceryQtyStepperRow item={item} checked={done} />
+                    <GroceryQtyStepperRow item={item} checked={false} />
                   </AliveCard>
-                );
-              })}
+              ))}
             </AnimatePresence>
+          )}
 
             {/* Checked items at bottom in shopping mode */}
             {shopping && checked.length > 0 && (
               <div className="mt-6">
-                <p className="text-[10px] uppercase tracking-widest mb-2 px-1" style={{ color: DONE_GREEN }}>
+                <p className="text-xs font-medium mb-2 px-1" style={{ color: DONE_GREEN }}>
                   In cart ({checked.length})
                 </p>
                 <AnimatePresence>
@@ -358,9 +384,38 @@ export function GroceryListDetail({
         )}
       </div>
 
+      {/* Estimated cost */}
+      {!shopping && listTab === "list" && (
+        <div className="px-4 mt-4 mb-2 flex items-center gap-2">
+          <div
+            className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 flex-1"
+            style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.05)" }}
+          >
+            <span className="text-sm font-medium shrink-0" style={{ color: "#6a6a6a" }}>$</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={costInput}
+              onChange={(e) => setCostInput(e.target.value)}
+              onBlur={commitCost}
+              onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+              placeholder="Est. cost"
+              className="bg-transparent outline-none text-sm w-full placeholder-[#3a3a3a]"
+              style={{ color: costInput ? accent : undefined }}
+            />
+          </div>
+          {listData?.estimatedCost != null && (
+            <p className="text-xs font-medium shrink-0" style={{ color: "#6a6a6a" }}>
+              est. total
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Add item */}
       {!shopping && listTab === "list" && (
-        <div className="px-4 mt-4 flex gap-2">
+        <div className="px-4 mt-0 flex gap-2">
           <input
             value={newQty}
             onChange={(e) => setNewQty(e.target.value)}
@@ -372,7 +427,7 @@ export function GroceryListDetail({
             onChange={(e) => setNewItem(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             placeholder="Add item..."
-            className="flex-1 bg-[#1a1a1a] rounded-xl px-4 py-3 text-sm text-[#f2f2f2] placeholder-[#6a6a6a] outline-none"
+            className="flex-1 rounded-xl px-4 py-3 text-sm font-medium text-[#f2f2f2] placeholder-[#3a3a3a] outline-none" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.05)" }}
           />
           <motion.button
             whileTap={{ scale: 0.93 }}
@@ -384,6 +439,65 @@ export function GroceryListDetail({
           </motion.button>
         </div>
       )}
+
+      {/* Edit item name sheet */}
+      <AnimatePresence>
+        {editingItem && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setEditingItem(null)}
+              className="fixed inset-0 z-40 bg-black/60"
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 38 }}
+              className="fixed inset-x-0 bottom-0 z-50 px-5 pt-4 rounded-t-3xl"
+              style={{
+                background: "#1a1a1a",
+                paddingBottom: "calc(2rem + env(safe-area-inset-bottom))",
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <div className="w-9 h-[5px] rounded-full mx-auto mb-5" style={{ background: "rgba(84,84,88,0.6)" }} />
+              <p className="text-base font-semibold text-[#f2f2f2] mb-4" style={{ letterSpacing: "-0.01em" }}>
+                Edit item
+              </p>
+              <input
+                autoFocus
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && void handleSaveItemName()}
+                className="w-full rounded-xl px-4 py-3 text-sm font-medium text-[#f2f2f2] placeholder-[#6a6a6a] outline-none mb-4"
+                style={{ background: "#252525", border: "1px solid rgba(255,255,255,0.06)" }}
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingItem(null)}
+                  className="flex-1 py-3 rounded-xl text-sm font-medium text-[#6a6a6a]"
+                  style={{ background: "#252525" }}
+                >
+                  Cancel
+                </button>
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => void handleSaveItemName()}
+                  disabled={!editName.trim()}
+                  className="flex-1 py-3 rounded-xl text-sm font-bold"
+                  style={{ background: accent, color: "#0e0e0e", opacity: editName.trim() ? 1 : 0.35 }}
+                >
+                  Save
+                </motion.button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

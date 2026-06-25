@@ -100,15 +100,17 @@ export const toggleItem = mutation({
 export const updateItemMeta = mutation({
   args: {
     id: v.id("grocery_list_items"),
+    name: v.optional(v.string()),
     quantity: v.optional(v.string()),
     unit: v.optional(v.string()),
   },
-  handler: async (ctx, { id, quantity, unit }) => {
+  handler: async (ctx, { id, name, quantity, unit }) => {
     const row = await ctx.db.get(id);
     if (!row) {
       throw new Error("Item not found");
     }
-    const patch: { quantity?: string | undefined; unit?: string | undefined } = {};
+    const patch: { name?: string; quantity?: string | undefined; unit?: string | undefined } = {};
+    if (name !== undefined && name.trim()) patch.name = name.trim();
     if (quantity !== undefined) {
       const q = quantity.trim();
       patch.quantity = q === "" ? undefined : q;
@@ -179,5 +181,26 @@ export const duplicateList = mutation({
     );
 
     return newListId;
+  },
+});
+
+export const reorderItems = mutation({
+  args: { ids: v.array(v.id("grocery_list_items")) },
+  handler: async (ctx, { ids }) => {
+    await Promise.all(ids.map((id, i) => ctx.db.patch(id, { order: i })));
+  },
+});
+
+export const getList = query({
+  args: { listId: v.id("grocery_lists") },
+  handler: async (ctx, { listId }) => {
+    return await ctx.db.get(listId);
+  },
+});
+
+export const updateListMeta = mutation({
+  args: { listId: v.id("grocery_lists"), estimatedCost: v.optional(v.number()) },
+  handler: async (ctx, { listId, estimatedCost }) => {
+    await ctx.db.patch(listId, { estimatedCost, updatedAt: Date.now() });
   },
 });

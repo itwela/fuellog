@@ -10,6 +10,7 @@ import { AddExerciseSheet } from "./AddExerciseSheet";
 import { WorkoutSession } from "./WorkoutSession";
 import { RoutineSheet } from "./RoutineSheet";
 import { AliveCard } from "@/components/AliveCard";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 const ACCENT = "#ff5623";
 type WorkoutTab = "library" | "routines";
@@ -22,6 +23,9 @@ export function WorkoutView({ userId }: { userId: string }) {
   const [sessionId, setSessionId] = useState<Id<"workout_sessions"> | null>(null);
   const [selecting, setSelecting] = useState(false);
   const [search, setSearch] = useState("");
+  const [editExercise, setEditExercise] = useState<(typeof exercises)[0] | null>(null);
+  const [editRoutine, setEditRoutine] = useState<(typeof routines)[0] | null>(null);
+  const [confirmRoutine, setConfirmRoutine] = useState<{ id: Id<"workout_routines">; name: string } | null>(null);
 
   const exercises = useQuery(api.workout.getExercises, { userId, search: search || undefined }) ?? [];
   const routines = useQuery(api.workout.getRoutines, { userId }) ?? [];
@@ -49,10 +53,10 @@ export function WorkoutView({ userId }: { userId: string }) {
   return (
     <div className="flex flex-col min-h-full pb-4">
       <div className="px-5 pt-12 pb-4">
-        <p className="text-[10px] font-light uppercase tracking-[0.15em] text-[#6a6a6a]">Training</p>
+        <p className="text-xs font-medium text-[#6a6a6a]">Training</p>
         <h1
-          className="text-[56px] leading-none font-black"
-          style={{ fontFamily: "var(--font-display)", color: ACCENT }}
+          className="text-[52px] leading-none font-bold"
+          style={{ color: ACCENT, letterSpacing: "-0.03em" }}
         >
           Workout
         </h1>
@@ -68,7 +72,7 @@ export function WorkoutView({ userId }: { userId: string }) {
             style={{
               background: tab === t ? ACCENT : "transparent",
               color: tab === t ? "#0e0e0e" : "#6a6a6a",
-              fontFamily: tab === t ? "var(--font-display)" : undefined,
+              letterSpacing: tab === t ? "-0.01em" : undefined,
             }}
           >
             {t === "library" ? "Library" : "Routines"}
@@ -84,7 +88,7 @@ export function WorkoutView({ userId }: { userId: string }) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search exercises..."
-              className="w-full bg-[#1a1a1a] rounded-xl px-4 py-3 text-sm text-[#f2f2f2] placeholder-[#6a6a6a] outline-none"
+              className="w-full rounded-xl px-4 py-3 text-sm font-medium text-[#f2f2f2] placeholder-[#3a3a3a] outline-none" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.05)" }}
             />
           </div>
 
@@ -97,7 +101,7 @@ export function WorkoutView({ userId }: { userId: string }) {
               style={{
                 background: selecting ? "#252525" : ACCENT,
                 color: selecting ? "#6a6a6a" : "#0e0e0e",
-                fontFamily: "var(--font-display)",
+                letterSpacing: "-0.01em",
               }}
             >
               {selecting ? "Cancel" : "Start Workout"}
@@ -128,6 +132,7 @@ export function WorkoutView({ userId }: { userId: string }) {
                   selectable={selecting}
                   selected={selectedIds.includes(ex._id)}
                   onToggleSelect={() => toggleSelect(ex._id)}
+                  onEdit={() => setEditExercise(ex)}
                 />
               ))}
             </AnimatePresence>
@@ -162,12 +167,12 @@ export function WorkoutView({ userId }: { userId: string }) {
                   seed={`routine:${routine._id}`}
                   accent={ACCENT}
                   className="rounded-2xl overflow-hidden"
-                  style={{ borderLeft: `3px solid ${ACCENT}` }}
+                  style={{}}
                 >
                   <div className="px-4 pt-4 pb-3">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 min-w-0">
-                        <p className="font-black text-lg text-[#f2f2f2] leading-tight" style={{ fontFamily: "var(--font-display)" }}>
+                        <p className="font-bold text-base text-[#f2f2f2] leading-tight" style={{ letterSpacing: "-0.01em" }}>
                           {routine.name}
                         </p>
                         <p className="text-[10px] text-[#6a6a6a] uppercase tracking-wider mt-0.5">
@@ -176,7 +181,16 @@ export function WorkoutView({ userId }: { userId: string }) {
                       </div>
                       <motion.button
                         whileTap={{ scale: 0.85 }}
-                        onClick={() => deleteRoutine({ id: routine._id })}
+                        onClick={() => setEditRoutine(routine)}
+                        className="p-1.5 text-[#4a4a4a] shrink-0 ml-2"
+                      >
+                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
+                        </svg>
+                      </motion.button>
+                      <motion.button
+                        whileTap={{ scale: 0.85 }}
+                        onClick={() => setConfirmRoutine({ id: routine._id, name: routine.name })}
                         className="p-1.5 text-[#6a6a6a] shrink-0 ml-2"
                       >
                         <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -233,20 +247,33 @@ export function WorkoutView({ userId }: { userId: string }) {
       )}
 
       <AnimatePresence>
-        {addOpen && (
+        {(addOpen || editExercise) && (
           <AddExerciseSheet
             userId={userId}
             accent={ACCENT}
-            onClose={() => setAddOpen(false)}
+            editExercise={editExercise ?? undefined}
+            onClose={() => { setAddOpen(false); setEditExercise(null); }}
           />
         )}
-        {routineSheetOpen && (
+        {(routineSheetOpen || editRoutine) && (
           <RoutineSheet
             userId={userId}
-            onClose={() => setRoutineSheetOpen(false)}
+            editRoutine={editRoutine ?? undefined}
+            onClose={() => { setRoutineSheetOpen(false); setEditRoutine(null); }}
           />
         )}
       </AnimatePresence>
+
+      <ConfirmDialog
+        open={!!confirmRoutine}
+        itemName={confirmRoutine?.name ?? ""}
+        subtitle="This routine will be deleted permanently."
+        onConfirm={async () => {
+          if (confirmRoutine) await deleteRoutine({ id: confirmRoutine.id });
+          setConfirmRoutine(null);
+        }}
+        onCancel={() => setConfirmRoutine(null)}
+      />
     </div>
   );
 }

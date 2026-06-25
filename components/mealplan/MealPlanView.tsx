@@ -6,14 +6,21 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { AliveCard } from "@/components/AliveCard";
-import { PlanDetailSheet } from "./PlanDetailSheet";
+import { PlanWeekView } from "./PlanWeekView";
+import { PlanDayView } from "./PlanDayView";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 const ACCENT = "#c084fc";
 
+type View = "list" | "plan" | "day";
+
 export function MealPlanView({ userId }: { userId: string }) {
+  const [view, setView] = useState<View>("list");
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [selectedPlan, setSelectedPlan] = useState<{ id: Id<"meal_plans">; name: string } | null>(null);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [confirmPlan, setConfirmPlan] = useState<{ id: Id<"meal_plans">; name: string } | null>(null);
 
   const plans = useQuery(api.mealplans.list, { userId }) ?? [];
   const createPlan = useMutation(api.mealplans.createPlan);
@@ -21,25 +28,73 @@ export function MealPlanView({ userId }: { userId: string }) {
 
   async function handleCreate() {
     if (!newName.trim()) return;
-    const id = await createPlan({ userId, name: newName.trim() });
+    const trimmed = newName.trim();
+    const id = await createPlan({ userId, name: trimmed });
     setNewName("");
     setCreating(false);
-    setSelectedPlan({ id, name: newName.trim() });
+    setSelectedPlan({ id, name: trimmed });
+    setView("plan");
   }
 
+  function openPlan(plan: { id: Id<"meal_plans">; name: string }) {
+    setSelectedPlan(plan);
+    setView("plan");
+  }
+
+  function openDay(day: string) {
+    setSelectedDay(day);
+    setView("day");
+  }
+
+  function backToList() {
+    setView("list");
+    setSelectedPlan(null);
+    setSelectedDay(null);
+  }
+
+  function backToPlan() {
+    setView("plan");
+    setSelectedDay(null);
+  }
+
+  // Day view
+  if (view === "day" && selectedPlan && selectedDay) {
+    return (
+      <PlanDayView
+        planId={selectedPlan.id}
+        planName={selectedPlan.name}
+        day={selectedDay}
+        onBack={backToPlan}
+      />
+    );
+  }
+
+  // Week view
+  if (view === "plan" && selectedPlan) {
+    return (
+      <PlanWeekView
+        planId={selectedPlan.id}
+        planName={selectedPlan.name}
+        onBack={backToList}
+        onDaySelect={openDay}
+      />
+    );
+  }
+
+  // Plan list
   return (
     <div className="flex flex-col min-h-full pb-4">
       <div className="px-5 pt-12 pb-6">
-        <p className="text-[10px] font-light uppercase tracking-[0.15em] text-[#6a6a6a]">Pre-plan your meals</p>
+        <p className="text-xs font-medium text-[#6a6a6a]">Pre-plan your meals</p>
         <h1
-          className="text-[56px] leading-none font-black"
-          style={{ fontFamily: "var(--font-display)", color: ACCENT }}
+          className="text-[52px] leading-none font-bold"
+          style={{ color: ACCENT, letterSpacing: "-0.03em" }}
         >
           Meal Plans
         </h1>
       </div>
 
-      {/* Create new plan input */}
+      {/* Create input */}
       <AnimatePresence>
         {creating && (
           <motion.div
@@ -53,10 +108,13 @@ export function MealPlanView({ userId }: { userId: string }) {
                 autoFocus
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") setCreating(false); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleCreate();
+                  if (e.key === "Escape") setCreating(false);
+                }}
                 placeholder="Plan name (e.g. Cut Week, Bulk Day)"
-                className="flex-1 bg-[#1a1a1a] rounded-xl px-4 py-3 text-sm text-[#f2f2f2] placeholder-[#6a6a6a] outline-none"
-                style={{ border: `1px solid ${ACCENT}44` }}
+                className="flex-1 rounded-xl px-4 py-3 text-sm font-medium text-[#f2f2f2] placeholder-[#3a3a3a] outline-none"
+                style={{ background: "#1a1a1a", border: `1px solid ${ACCENT}44` }}
               />
               <motion.button
                 whileTap={{ scale: 0.93 }}
@@ -81,23 +139,25 @@ export function MealPlanView({ userId }: { userId: string }) {
               seed={`plan:${plan._id}`}
               accent={ACCENT}
               className="rounded-2xl overflow-hidden"
-              style={{ borderLeft: `3px solid ${ACCENT}` }}
+              style={{}}
             >
               <motion.div
                 className="flex items-center justify-between gap-3 px-4 py-4 cursor-pointer"
-                onClick={() => setSelectedPlan({ id: plan._id, name: plan.name })}
+                onClick={() => openPlan({ id: plan._id, name: plan.name })}
                 whileTap={{ scale: 0.98 }}
               >
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-[#f2f2f2] text-base truncate">{plan.name}</p>
                   <p className="text-[10px] text-[#6a6a6a] mt-0.5">
-                    {plan.itemCount === 0 ? "No meals yet" : `${plan.itemCount} meal${plan.itemCount !== 1 ? "s" : ""}`}
+                    {plan.itemCount === 0
+                      ? "No meals yet"
+                      : `${plan.itemCount} meal${plan.itemCount !== 1 ? "s" : ""}`}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <motion.button
                     whileTap={{ scale: 0.85 }}
-                    onClick={(e) => { e.stopPropagation(); deletePlan({ id: plan._id }); }}
+                    onClick={(e) => { e.stopPropagation(); setConfirmPlan({ id: plan._id, name: plan.name }); }}
                     className="p-1.5 rounded-lg text-[#6a6a6a]"
                   >
                     <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -132,15 +192,16 @@ export function MealPlanView({ userId }: { userId: string }) {
         </svg>
       </motion.button>
 
-      <AnimatePresence>
-        {selectedPlan && (
-          <PlanDetailSheet
-            planId={selectedPlan.id}
-            planName={selectedPlan.name}
-            onClose={() => setSelectedPlan(null)}
-          />
-        )}
-      </AnimatePresence>
+      <ConfirmDialog
+        open={!!confirmPlan}
+        itemName={confirmPlan?.name ?? ""}
+        subtitle="This meal plan and all its items will be gone for good."
+        onConfirm={async () => {
+          if (confirmPlan) await deletePlan({ id: confirmPlan.id });
+          setConfirmPlan(null);
+        }}
+        onCancel={() => setConfirmPlan(null)}
+      />
     </div>
   );
 }
