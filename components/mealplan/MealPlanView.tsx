@@ -131,7 +131,7 @@ export function MealPlanView({ userId }: { userId: string }) {
       </AnimatePresence>
 
       {/* Plans list */}
-      <div className="flex-1 px-4 space-y-2">
+      <div className="flex-1 px-4 space-y-2 pb-32 md:pb-4">
         <AnimatePresence>
           {plans.map((plan) => (
             <AliveCard

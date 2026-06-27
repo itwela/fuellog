@@ -122,7 +122,7 @@ export function WorkoutView({ userId }: { userId: string }) {
           </div>
 
           {/* Exercise list */}
-          <div className="flex-1 px-4 space-y-2">
+          <div className="flex-1 px-4 space-y-2 pb-32 md:pb-4">
             <AnimatePresence>
               {exercises.map((ex) => (
                 <ExerciseCard
@@ -159,7 +159,7 @@ export function WorkoutView({ userId }: { userId: string }) {
       ) : (
         <>
           {/* Routines list */}
-          <div className="flex-1 px-4 space-y-3">
+          <div className="flex-1 px-4 space-y-3 pb-32 md:pb-4">
             <AnimatePresence>
               {routines.map((routine) => (
                 <AliveCard

@@ -175,7 +175,7 @@ export function MealLogView({ userId }: { userId: string }) {
       </div>
 
       {/* Meal list */}
-      <div className="flex-1 px-4 space-y-2">
+      <div className="flex-1 px-4 space-y-2 pb-32 md:pb-4">
         {logs.length === 0 ? (
           <motion.p
             key={selectedISO}

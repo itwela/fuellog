@@ -76,9 +76,9 @@ export function RoutineSheet({
         className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl px-5 pt-4"
         style={{
           background: "#1a1a1a",
-          maxHeight: "90dvh",
+          maxHeight: "calc(100dvh - 16px)",
           overflowY: "auto",
-          paddingBottom: "calc(2rem + env(safe-area-inset-bottom))",
+          paddingBottom: "calc(4rem + env(safe-area-inset-bottom))",
         }}
       >
         <div className="w-10 h-1 bg-[#3a3a3a] rounded-full mx-auto mb-5" />
@@ -127,7 +127,7 @@ export function RoutineSheet({
           />
         </div>
 
-        <div className="space-y-1.5 mb-5" style={{ maxHeight: 280, overflowY: "auto" }}>
+        <div className="space-y-1.5 mb-5">
           {exercises.map((ex) => {
             const count = selectedIds.filter((i) => i === ex._id).length;
             const sel = count > 0;

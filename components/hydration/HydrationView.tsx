@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 const ACCENT = "#38bdf8";
 const GOAL_OZ = 128; // 1 gallon
@@ -123,6 +124,7 @@ export function HydrationView({ userId }: { userId: string }) {
 
   const log = useMutation(api.hydration.log);
   const remove = useMutation(api.hydration.remove);
+  const [pendingDeleteId, setPendingDeleteId] = useState<Id<"hydration_logs"> | null>(null);
 
   useEffect(() => {
     const now = new Date();
@@ -154,7 +156,7 @@ export function HydrationView({ userId }: { userId: string }) {
   }
 
   async function handleDelete(id: Id<"hydration_logs">) {
-    await remove({ id });
+    setPendingDeleteId(id);
   }
 
   function goBack() {
@@ -345,6 +347,17 @@ export function HydrationView({ userId }: { userId: string }) {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!pendingDeleteId}
+        itemName="this entry"
+        subtitle="This water log entry will be removed."
+        onConfirm={async () => {
+          if (pendingDeleteId) await remove({ id: pendingDeleteId });
+          setPendingDeleteId(null);
+        }}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 }
