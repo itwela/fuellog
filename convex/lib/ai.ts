@@ -56,13 +56,10 @@ function estimateModelChain(): string[] {
   return mergeLegacyFirst(DEFAULT_ESTIMATE_MODELS);
 }
 
-// Free vision-capable models on OpenRouter (support image_url content blocks)
 const DEFAULT_VISION_MODELS = [
-  "qwen/qwen2.5-vl-7b-instruct:free",
-  "meta-llama/llama-3.2-11b-vision-instruct:free",
-  "qwen/qwen2-vl-7b-instruct:free",
-  "google/gemini-2.0-flash-exp:free",
-  "microsoft/phi-4-multimodal-instruct:free",
+  "google/gemini-2.0-flash-001",
+  "openai/gpt-4o-mini",
+  "anthropic/claude-haiku-4-5",
 ] as const;
 
 function visionModelChain(): string[] {
