@@ -8,15 +8,15 @@ const BASE_URL = "https://openrouter.ai/api/v1";
  */
 // Smaller/faster models first for estimates; larger models for parse (needs more reasoning)
 const DEFAULT_PARSE_MODELS = [
-  "google/gemma-3-4b-it:free",
-  "nvidia/nemotron-nano-12b-v2-vl:free",
-  "google/gemma-3-12b-it:free",
+  "google/gemini-2.0-flash-001",
+  "openai/gpt-4o-mini",
+  "anthropic/claude-haiku-4-5",
 ] as const;
 
 const DEFAULT_ESTIMATE_MODELS = [
-  "google/gemma-3-4b-it:free",
-  "google/gemma-3-12b-it:free",
-  "nvidia/nemotron-nano-12b-v2-vl:free",
+  "google/gemini-2.0-flash-001",
+  "openai/gpt-4o-mini",
+  "anthropic/claude-haiku-4-5",
 ] as const;
 
 function splitModelList(raw: string | undefined): string[] {
