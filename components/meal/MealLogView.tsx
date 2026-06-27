@@ -49,8 +49,8 @@ export function MealLogView({ userId }: { userId: string }) {
   const calorieConsumed = totals.calories ?? 0;
   const calorieGoal = goals?.calories ?? 0;
   const calorieRemaining = calorieGoal > 0 ? Math.max(calorieGoal - calorieConsumed, 0) : null;
-  const calorieOver = calorieGoal > 0 && calorieConsumed > calorieGoal;
-  const calorieGoalMet = calorieGoal > 0 && calorieRemaining === 0 && !calorieOver;
+  // calorieGoalMet = any time the displayed number is 0 (at goal or over) — that's the win state
+  const calorieGoalMet = calorieGoal > 0 && calorieRemaining === 0;
   const sugarDayLabel = isToday ? "Today" : selectedDate ? formatDayLabel(selectedDate) : "";
 
   if (!selectedDate || !today) return null;
@@ -63,11 +63,7 @@ export function MealLogView({ userId }: { userId: string }) {
           <p className="text-xs font-medium" style={{ color: calorieGoalMet ? "#ffd60a" : "#6a6a6a" }}>
             {isToday ? (
               calorieGoal > 0
-                ? calorieOver
-                  ? "Over today's goal"
-                  : calorieGoalMet
-                    ? "Goal reached"
-                    : "Remaining today"
+                ? calorieGoalMet ? "Goal reached" : "Remaining today"
                 : "Today"
             ) : (
               formatDayLabel(selectedDate)
@@ -79,10 +75,10 @@ export function MealLogView({ userId }: { userId: string }) {
             animate={{ opacity: 1, y: 0 }}
             className="text-[68px] leading-none font-bold"
             style={{
-              color: calorieOver ? "#ff453a" : calorieGoalMet ? "#ffd60a" : ACCENT,
+              color: calorieGoalMet ? "#ffd60a" : ACCENT,
               letterSpacing: "-0.04em",
               textShadow: calorieGoalMet
-                ? "0 0 40px rgba(255,214,10,0.55), 0 0 80px rgba(255,214,10,0.25)"
+                ? "0 0 40px rgba(255,214,10,0.6), 0 0 80px rgba(255,214,10,0.3)"
                 : "none",
             }}
           >
