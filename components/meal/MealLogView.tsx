@@ -49,8 +49,13 @@ export function MealLogView({ userId }: { userId: string }) {
   const calorieConsumed = totals.calories ?? 0;
   const calorieGoal = goals?.calories ?? 0;
   const calorieRemaining = calorieGoal > 0 ? Math.max(calorieGoal - calorieConsumed, 0) : null;
-  // calorieGoalMet = any time the displayed number is 0 (at goal or over) — that's the win state
   const calorieGoalMet = calorieGoal > 0 && calorieRemaining === 0;
+  const caloriePct = calorieGoal > 0 ? Math.round((calorieConsumed / calorieGoal) * 100) : null;
+
+  const proteinGoal = goals?.protein;
+  const carbsGoal = goals?.carbs;
+  const fatGoal = goals?.fat;
+
   const sugarDayLabel = isToday ? "Today" : selectedDate ? formatDayLabel(selectedDate) : "";
 
   if (!selectedDate || !today) return null;
@@ -88,9 +93,21 @@ export function MealLogView({ userId }: { userId: string }) {
             className="text-xs font-medium"
             style={{ color: calorieGoalMet ? "rgba(255,214,10,0.6)" : "#6a6a6a" }}
           >
-            {calorieGoal > 0
-              ? `${Math.round(calorieConsumed)} of ${calorieGoal} kcal consumed`
-              : "Calories logged"}
+            {calorieGoal > 0 ? (
+              <>
+                <span>{Math.round(calorieConsumed)}</span>
+                {caloriePct !== null && (
+                  <span style={{ color: calorieGoalMet ? "#ffd60a" : ACCENT, marginLeft: 3 }}>
+                    ({caloriePct}%)
+                  </span>
+                )}
+                <span> of {calorieGoal}</span>
+                <span style={{ color: calorieGoalMet ? "#ffd60a" : ACCENT, marginLeft: 3 }}>
+                  (100%)
+                </span>
+                <span> kcal</span>
+              </>
+            ) : "Calories logged"}
           </motion.p>
         </div>
 
@@ -123,23 +140,23 @@ export function MealLogView({ userId }: { userId: string }) {
           </div>
         ) : (
           <div className="flex gap-3">
-            <MacroRing label="Protein" value={totals.protein ?? 0} unit="g" color={ACCENT} />
-            <MacroRing label="Carbs" value={totals.carbs ?? 0} unit="g" color="#4abaff" />
-            <MacroRing label="Fat" value={totals.fat ?? 0} unit="g" color="#fdcb40" />
+            <MacroRing label="Protein" value={totals.protein ?? 0} unit="g" color={ACCENT} goal={proteinGoal} />
+            <MacroRing label="Carbs" value={totals.carbs ?? 0} unit="g" color="#4abaff" goal={carbsGoal} />
+            <MacroRing label="Fat" value={totals.fat ?? 0} unit="g" color="#fdcb40" goal={fatGoal} />
           </div>
         )}
-        <SugarDayStat grams={totals.sugar ?? 0} dayLabel={sugarDayLabel} />
+        <SugarDayStat grams={totals.sugar ?? 0} dayLabel={sugarDayLabel} goalMet={calorieGoalMet} />
       </div>
 
       {/* Desktop: rings + sugar */}
       <div className="hidden md:flex flex-col gap-3 px-5 mb-6">
         <p className="text-xs font-medium text-[#6a6a6a] px-0.5">Day progress</p>
         <div className="flex gap-3">
-          <MacroRing label="Protein" value={totals.protein ?? 0} unit="g" color={ACCENT} />
-          <MacroRing label="Carbs" value={totals.carbs ?? 0} unit="g" color="#4abaff" />
-          <MacroRing label="Fat" value={totals.fat ?? 0} unit="g" color="#fdcb40" />
+          <MacroRing label="Protein" value={totals.protein ?? 0} unit="g" color={ACCENT} goal={proteinGoal} />
+          <MacroRing label="Carbs" value={totals.carbs ?? 0} unit="g" color="#4abaff" goal={carbsGoal} />
+          <MacroRing label="Fat" value={totals.fat ?? 0} unit="g" color="#fdcb40" goal={fatGoal} />
         </div>
-        <SugarDayStat grams={totals.sugar ?? 0} dayLabel={sugarDayLabel} />
+        <SugarDayStat grams={totals.sugar ?? 0} dayLabel={sugarDayLabel} goalMet={calorieGoalMet} />
       </div>
 
       {/* Load plan button */}
