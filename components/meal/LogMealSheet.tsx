@@ -161,13 +161,25 @@ export function LogMealSheet({
     if (!photoFile) return;
     setLoading(true);
     setPhotoError(null);
+    const ctx = photoContext.trim();
     try {
-      const { base64, mimeType } = await compressImage(photoFile);
-      const result = await estimateImage({
-        imageBase64: base64,
-        mimeType,
-        context: photoContext.trim() || undefined,
-      });
+      let result;
+      try {
+        const { base64, mimeType } = await compressImage(photoFile);
+        result = await estimateImage({
+          imageBase64: base64,
+          mimeType,
+          context: ctx || undefined,
+        });
+      } catch (visionErr) {
+        console.warn("Vision models failed, falling back to text estimate:", visionErr);
+        if (!ctx) throw visionErr; // no context to fall back with
+        // Fall back: use the user's context text as the food description
+        result = await estimateText({
+          foodDescription: ctx,
+        });
+        if (!result.name || result.name === ctx) result = { ...result, name: ctx };
+      }
       setForm({
         name: result.name,
         mealType: form.mealType,
@@ -182,7 +194,7 @@ export function LogMealSheet({
       setPhotoAnalyzed(true);
     } catch (err) {
       console.error("Photo analysis failed:", err);
-      setPhotoError("Analysis failed — try again or add more context");
+      setPhotoError(ctx ? "Analysis failed — try again" : "Analysis failed — add context and try again");
     } finally {
       setLoading(false);
     }
