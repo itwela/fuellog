@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useAction } from "convex/react";
+import { useSheetDismiss } from "@/lib/useSheetDismiss";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { compressImage } from "@/lib/utils";
@@ -119,6 +120,7 @@ export function LogMealSheet({
   const upsertFoodBank = useMutation(api.foodbank.upsert);
   const estimateText = useAction(api.mealActions.estimateFromText);
   const estimateImage = useAction(api.mealActions.estimateFromImage);
+  const { dragProps, startDrag } = useSheetDismiss(onClose);
 
   function set(field: keyof MacroForm, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -312,6 +314,7 @@ export function LogMealSheet({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 320, damping: 38 }}
+        {...dragProps}
         className="fixed inset-x-0 bottom-0 z-50 px-5 pt-3 pb-8 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[480px]"
         style={{
           background: "#1a1a1a",
@@ -325,7 +328,8 @@ export function LogMealSheet({
       >
         {/* Handle (mobile only) */}
         <div
-          className="w-9 h-[5px] rounded-full mx-auto mt-1 mb-6 md:hidden"
+          onPointerDown={startDrag}
+          className="w-9 h-[5px] rounded-full mx-auto mt-1 mb-6 md:hidden touch-none cursor-grab"
           style={{ background: "rgba(84,84,88,0.6)" }}
         />
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSheetDismiss } from "@/lib/useSheetDismiss";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
@@ -171,6 +172,7 @@ export function GroceryListDetail({
   const removeItem = useMutation(api.grocery.removeItem);
   const resetChecks = useMutation(api.grocery.resetChecks);
   const reorderItems = useMutation(api.grocery.reorderItems);
+  const { dragProps: editItemDragProps, startDrag: editItemStartDrag } = useSheetDismiss(() => setEditingItem(null));
   const updateItemMeta = useMutation(api.grocery.updateItemMeta);
   const updateListMeta = useMutation(api.grocery.updateListMeta);
 
@@ -456,6 +458,7 @@ export function GroceryListDetail({
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", stiffness: 320, damping: 38 }}
+              {...editItemDragProps}
               className="fixed inset-x-0 bottom-0 z-50 px-5 pt-4 rounded-t-3xl"
               style={{
                 background: "#1a1a1a",
@@ -463,7 +466,7 @@ export function GroceryListDetail({
                 border: "1px solid rgba(255,255,255,0.06)",
               }}
             >
-              <div className="w-9 h-[5px] rounded-full mx-auto mb-5" style={{ background: "rgba(84,84,88,0.6)" }} />
+              <div onPointerDown={editItemStartDrag} className="w-9 h-[5px] rounded-full mx-auto mb-5 touch-none cursor-grab" style={{ background: "rgba(84,84,88,0.6)" }} />
               <p className="text-base font-semibold text-[#f2f2f2] mb-4" style={{ letterSpacing: "-0.01em" }}>
                 Edit item
               </p>

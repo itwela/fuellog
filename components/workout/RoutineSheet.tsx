@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
+import { useSheetDismiss } from "@/lib/useSheetDismiss";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { DraggableReorderList, type ReorderItem } from "@/components/lightswind/draggable-reorder-list";
@@ -40,6 +41,7 @@ export function RoutineSheet({
   });
   const createRoutine = useMutation(api.workout.createRoutine);
   const updateRoutine = useMutation(api.workout.updateRoutine);
+  const { dragProps, startDrag } = useSheetDismiss(onClose);
 
   function add(id: Id<"exercises">) {
     setSelectedIds((prev) => [...prev, id]);
@@ -73,6 +75,7 @@ export function RoutineSheet({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 320, damping: 38 }}
+        {...dragProps}
         className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl px-5 pt-4"
         style={{
           background: "#1a1a1a",
@@ -81,7 +84,7 @@ export function RoutineSheet({
           paddingBottom: "calc(4rem + env(safe-area-inset-bottom))",
         }}
       >
-        <div className="w-10 h-1 bg-[#3a3a3a] rounded-full mx-auto mb-5" />
+        <div onPointerDown={startDrag} className="w-10 h-1 bg-[#3a3a3a] rounded-full mx-auto mb-5 touch-none cursor-grab" />
         <h2 className="text-xl font-bold mb-5" style={{ fontFamily: "var(--font-display)" }}>
           {isEdit ? "Edit Routine" : "New Routine"}
         </h2>

@@ -50,14 +50,13 @@ export default function Home() {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-hidden relative">
-          <AnimatePresence mode="wait" initial={false} custom={direction}>
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={activeTab}
-              custom={direction}
-              initial={{ x: direction * 40, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: direction * -40, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 380, damping: 36 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
               className="absolute inset-0 overflow-y-auto"
             >
               {/* Desktop: constrain content width, center it */}

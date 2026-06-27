@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
+import { useSheetDismiss } from "@/lib/useSheetDismiss";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { PlanItemSheet } from "./PlanItemSheet";
@@ -30,6 +31,7 @@ export function PlanDetailSheet({
   const items = useQuery(api.mealplans.getItems, { planId }) ?? [];
   const removeItem = useMutation(api.mealplans.removeItem);
   const reorderItems = useMutation(api.mealplans.reorderItems);
+  const { dragProps, startDrag } = useSheetDismiss(onClose);
 
   return (
     <>
@@ -45,6 +47,7 @@ export function PlanDetailSheet({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 320, damping: 38 }}
+        {...dragProps}
         className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl px-5 pt-4"
         style={{
           background: "#0e0e0e",
@@ -53,7 +56,7 @@ export function PlanDetailSheet({
           paddingBottom: "calc(2rem + env(safe-area-inset-bottom))",
         }}
       >
-        <div className="w-10 h-1 bg-[#3a3a3a] rounded-full mx-auto mb-5" />
+        <div onPointerDown={startDrag} className="w-10 h-1 bg-[#3a3a3a] rounded-full mx-auto mb-5 touch-none cursor-grab" />
 
         <div className="flex items-center justify-between mb-6">
           <div>

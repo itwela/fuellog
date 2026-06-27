@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
+import { useSheetDismiss } from "@/lib/useSheetDismiss";
 import { api } from "@/convex/_generated/api";
 
 interface GoalForm {
@@ -21,6 +22,7 @@ export function GoalsSheet({
 }) {
   const existing = useQuery(api.goals.get, { userId });
   const setGoals = useMutation(api.goals.set);
+  const { dragProps, startDrag } = useSheetDismiss(onClose);
 
   const [form, setForm] = useState<GoalForm>({
     calories: "",
@@ -78,6 +80,7 @@ export function GoalsSheet({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 340, damping: 40 }}
+        {...dragProps}
         className="fixed inset-x-0 bottom-0 z-50 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[400px]"
         style={{
           background: "#1a1a1a",
@@ -90,7 +93,8 @@ export function GoalsSheet({
       >
         {/* Handle */}
         <div
-          className="w-9 h-[5px] rounded-full mx-auto mt-3 mb-6 md:hidden"
+          onPointerDown={startDrag}
+          className="w-9 h-[5px] rounded-full mx-auto mt-3 mb-6 md:hidden touch-none cursor-grab"
           style={{ background: "rgba(84,84,88,0.6)" }}
         />
 
