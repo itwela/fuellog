@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -210,15 +210,35 @@ export function FoodBankView({ userId }: { userId: string }) {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const uploadingForRef = useRef<Id<"food_bank"> | null>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const allItems = (useQuery(api.foodbank.search, { userId, query: "" }) ?? []) as FoodItem[];
+  const q = search.trim();
+
+  const { results: pagedItems, status, loadMore } = usePaginatedQuery(
+    api.foodbank.listPaginated,
+    { userId },
+    { initialNumItems: 30 }
+  );
+  const searchResults = (useQuery(api.foodbank.search, q ? { userId, query: q } : "skip") ?? []) as FoodItem[];
+
+  const items: FoodItem[] = q ? searchResults : (pagedItems as FoodItem[]);
+  const canLoadMore = !q && status === "CanLoadMore";
+
   const remove = useMutation(api.foodbank.remove);
   const update = useMutation(api.foodbank.update);
   const setImage = useMutation(api.foodbank.setImage);
   const generateUploadUrl = useMutation(api.fileStorage.generateUploadUrl);
 
-  const q = search.trim().toLowerCase();
-  const items = q ? allItems.filter((i) => i.name.toLowerCase().includes(q)) : allItems;
+  // Intersection observer — load more when sentinel scrolls into view
+  useEffect(() => {
+    if (!sentinelRef.current || !canLoadMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMore(30); },
+      { rootMargin: "200px" }
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [canLoadMore, loadMore]);
 
   async function handleSave(form: EditForm) {
     if (!selectedItem) return;
@@ -296,7 +316,7 @@ export function FoodBankView({ userId }: { userId: string }) {
 
       {/* Masonry grid */}
       <div className="px-4">
-        {items.length === 0 ? (
+        {items.length === 0 && status !== "LoadingFirstPage" ? (
           <p className="text-center text-[#6a6a6a] text-sm pt-16">
             {q ? `No results for "${search}"` : "Log meals to build your food bank"}
           </p>
@@ -305,6 +325,26 @@ export function FoodBankView({ userId }: { userId: string }) {
             {items.map((item) => (
               <MasonryCard key={item._id} item={item} onSelect={() => setSelectedItem(item)} />
             ))}
+          </div>
+        )}
+
+        {/* Infinite scroll sentinel */}
+        <div ref={sentinelRef} className="h-1" />
+
+        {/* Loading more indicator */}
+        {status === "LoadingMore" && (
+          <div className="flex justify-center py-6">
+            <div className="flex gap-[5px]">
+              {[0, 1, 2].map((i) => (
+                <motion.span
+                  key={i}
+                  className="block w-[5px] h-[5px] rounded-full"
+                  style={{ background: ACCENT }}
+                  animate={{ opacity: [0.25, 1, 0.25] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                />
+              ))}
+            </div>
           </div>
         )}
       </div>

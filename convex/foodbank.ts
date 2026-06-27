@@ -1,24 +1,38 @@
 import { v } from "convex/values";
+import { paginationOptsValidator } from "convex/server";
 import { mutation, query } from "./_generated/server";
+
+export const listPaginated = query({
+  args: { userId: v.string(), paginationOpts: paginationOptsValidator },
+  handler: async (ctx, { userId, paginationOpts }) => {
+    const result = await ctx.db
+      .query("food_bank")
+      .withIndex("by_user", (idx) => idx.eq("userId", userId))
+      .order("desc")
+      .paginate(paginationOpts);
+    return {
+      ...result,
+      page: await Promise.all(
+        result.page.map(async (item) => ({
+          ...item,
+          imageUrl: item.imageStorageId
+            ? await ctx.storage.getUrl(item.imageStorageId)
+            : null,
+        }))
+      ),
+    };
+  },
+});
 
 export const search = query({
   args: { userId: v.string(), query: v.string() },
   handler: async (ctx, { userId, query: q }) => {
-    let items;
-    if (!q.trim()) {
-      items = await ctx.db
-        .query("food_bank")
-        .withIndex("by_user", (idx) => idx.eq("userId", userId))
-        .order("desc")
-        .take(30);
-    } else {
-      items = await ctx.db
-        .query("food_bank")
-        .withSearchIndex("search_name", (idx) =>
-          idx.search("name", q).eq("userId", userId)
-        )
-        .take(20);
-    }
+    const items = await ctx.db
+      .query("food_bank")
+      .withSearchIndex("search_name", (idx) =>
+        idx.search("name", q).eq("userId", userId)
+      )
+      .take(30);
     return await Promise.all(
       items.map(async (item) => ({
         ...item,
