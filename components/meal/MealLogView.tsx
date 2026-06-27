@@ -50,6 +50,7 @@ export function MealLogView({ userId }: { userId: string }) {
   const calorieGoal = goals?.calories ?? 0;
   const calorieRemaining = calorieGoal > 0 ? Math.max(calorieGoal - calorieConsumed, 0) : null;
   const calorieOver = calorieGoal > 0 && calorieConsumed > calorieGoal;
+  const calorieGoalMet = calorieGoal > 0 && calorieRemaining === 0 && !calorieOver;
   const sugarDayLabel = isToday ? "Today" : selectedDate ? formatDayLabel(selectedDate) : "";
 
   if (!selectedDate || !today) return null;
@@ -59,9 +60,15 @@ export function MealLogView({ userId }: { userId: string }) {
       {/* Header */}
       <div className="px-5 pt-12 pb-2 flex items-start justify-between">
         <div>
-          <p className="text-xs font-medium text-[#6a6a6a]">
+          <p className="text-xs font-medium" style={{ color: calorieGoalMet ? "#ffd60a" : "#6a6a6a" }}>
             {isToday ? (
-              calorieGoal > 0 ? (calorieOver ? "Over today's goal" : "Remaining today") : "Today"
+              calorieGoal > 0
+                ? calorieOver
+                  ? "Over today's goal"
+                  : calorieGoalMet
+                    ? "Goal reached"
+                    : "Remaining today"
+                : "Today"
             ) : (
               formatDayLabel(selectedDate)
             )}
@@ -72,17 +79,23 @@ export function MealLogView({ userId }: { userId: string }) {
             animate={{ opacity: 1, y: 0 }}
             className="text-[68px] leading-none font-bold"
             style={{
-              color: calorieOver ? "#ff453a" : ACCENT,
+              color: calorieOver ? "#ff453a" : calorieGoalMet ? "#ffd60a" : ACCENT,
               letterSpacing: "-0.04em",
+              textShadow: calorieGoalMet
+                ? "0 0 40px rgba(255,214,10,0.55), 0 0 80px rgba(255,214,10,0.25)"
+                : "none",
             }}
           >
             {calorieGoal > 0 ? calorieRemaining : Math.round(calorieConsumed)}
           </motion.h1>
-          <p className="text-xs font-medium text-[#6a6a6a]">
+          <motion.p
+            className="text-xs font-medium"
+            style={{ color: calorieGoalMet ? "rgba(255,214,10,0.6)" : "#6a6a6a" }}
+          >
             {calorieGoal > 0
               ? `${Math.round(calorieConsumed)} of ${calorieGoal} kcal consumed`
               : "Calories logged"}
-          </p>
+          </motion.p>
         </div>
 
         <motion.button
