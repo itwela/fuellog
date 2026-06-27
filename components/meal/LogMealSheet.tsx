@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { toBase64 } from "@/lib/utils";
+import { compressImage } from "@/lib/utils";
 import { FoodBankPicker } from "./FoodBankPicker";
 import { TextParseMode } from "./TextParseMode";
 
@@ -96,6 +96,7 @@ export function LogMealSheet({
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoContext, setPhotoContext] = useState("");
   const [photoAnalyzed, setPhotoAnalyzed] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -153,16 +154,18 @@ export function LogMealSheet({
     setPhotoPreview(URL.createObjectURL(file));
     setPhotoContext("");
     setPhotoAnalyzed(false);
+    setPhotoError(null);
   }
 
   async function handleAnalyzePhoto() {
     if (!photoFile) return;
     setLoading(true);
+    setPhotoError(null);
     try {
-      const base64 = await toBase64(photoFile);
+      const { base64, mimeType } = await compressImage(photoFile);
       const result = await estimateImage({
         imageBase64: base64,
-        mimeType: photoFile.type,
+        mimeType,
         context: photoContext.trim() || undefined,
       });
       setForm({
@@ -177,7 +180,9 @@ export function LogMealSheet({
       });
       setAiRan(true);
       setPhotoAnalyzed(true);
-      // stay in photo mode — results display inline
+    } catch (err) {
+      console.error("Photo analysis failed:", err);
+      setPhotoError("Analysis failed — try again or add more context");
     } finally {
       setLoading(false);
     }
@@ -189,6 +194,7 @@ export function LogMealSheet({
     setPhotoFile(null);
     setPhotoContext("");
     setPhotoAnalyzed(false);
+    setPhotoError(null);
     if (fileRef.current) fileRef.current.value = "";
   }
 
@@ -582,6 +588,12 @@ export function LogMealSheet({
                       </svg>
                       Analyze Food
                     </motion.button>
+
+                    {photoError && (
+                      <p className="text-xs text-center px-2" style={{ color: "#ff453a" }}>
+                        {photoError}
+                      </p>
+                    )}
                   </motion.div>
                 ) : (
                   /* ── Camera button ── */

@@ -95,9 +95,32 @@ export function toBase64(file: File): Promise<string> {
     reader.readAsDataURL(file);
     reader.onload = () => {
       const result = reader.result as string;
-      // Strip the data:mime/type;base64, prefix
       resolve(result.split(",")[1]);
     };
     reader.onerror = reject;
+  });
+}
+
+/** Compress + resize an image file to max 1024px and JPEG 82% before sending to AI. */
+export function compressImage(file: File, maxPx = 1024, quality = 0.82): Promise<{ base64: string; mimeType: string }> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { reject(new Error("canvas unavailable")); return; }
+      ctx.drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL("image/jpeg", quality);
+      resolve({ base64: dataUrl.split(",")[1], mimeType: "image/jpeg" });
+    };
+    img.onerror = reject;
+    img.src = url;
   });
 }

@@ -58,9 +58,11 @@ function estimateModelChain(): string[] {
 
 // Free vision-capable models on OpenRouter (support image_url content blocks)
 const DEFAULT_VISION_MODELS = [
-  "meta-llama/llama-3.2-11b-vision-instruct:free",
-  "google/gemini-2.0-flash-exp:free",
   "qwen/qwen2.5-vl-7b-instruct:free",
+  "meta-llama/llama-3.2-11b-vision-instruct:free",
+  "qwen/qwen2-vl-7b-instruct:free",
+  "google/gemini-2.0-flash-exp:free",
+  "microsoft/phi-4-multimodal-instruct:free",
 ] as const;
 
 function visionModelChain(): string[] {
@@ -544,6 +546,7 @@ Respond ONLY with valid JSON in this exact format, no explanation:
 }`;
 
   const visionModels = visionModelChain();
+  console.log("[estimateMacrosFromImage] vision chain:", visionModels.join(" → "), "imageBytes (approx):", Math.round(imageBase64.length * 0.75));
   const { data } = await chatCompletionsWithModelFallback(
     {
       messages: [
@@ -558,6 +561,8 @@ Respond ONLY with valid JSON in this exact format, no explanation:
           ],
         },
       ],
+      max_tokens: 200,
+      temperature: 0,
     },
     visionModels,
     "estimateMacrosFromImage"
