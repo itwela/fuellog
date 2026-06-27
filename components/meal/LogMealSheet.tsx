@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useAction } from "convex/react";
-import { useSheetDismiss } from "@/lib/useSheetDismiss";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { compressImage } from "@/lib/utils";
@@ -120,7 +119,6 @@ export function LogMealSheet({
   const upsertFoodBank = useMutation(api.foodbank.upsert);
   const estimateText = useAction(api.mealActions.estimateFromText);
   const estimateImage = useAction(api.mealActions.estimateFromImage);
-  const { dragProps, startDrag } = useSheetDismiss(onClose);
 
   function set(field: keyof MacroForm, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -314,7 +312,6 @@ export function LogMealSheet({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 320, damping: 38 }}
-        {...dragProps}
         className="fixed inset-x-0 bottom-0 z-50 px-5 pt-3 pb-8 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[480px]"
         style={{
           background: "#1a1a1a",
@@ -326,10 +323,8 @@ export function LogMealSheet({
           border: "1px solid rgba(255,255,255,0.06)",
         }}
       >
-        {/* Handle (mobile only) */}
         <div
-          onPointerDown={startDrag}
-          className="w-9 h-[5px] rounded-full mx-auto mt-1 mb-6 md:hidden touch-none cursor-grab"
+          className="w-9 h-[5px] rounded-full mx-auto mt-1 mb-6 md:hidden"
           style={{ background: "rgba(84,84,88,0.6)" }}
         />
 
@@ -345,16 +340,28 @@ export function LogMealSheet({
                   ? "AI Text Parse"
                   : "Log Meal"}
           </h2>
-          {(isEdit || (mode !== "text" && !photoAnalyzed)) && (
+          <div className="flex items-center gap-2">
+            {(isEdit || (mode !== "text" && !photoAnalyzed)) && (
+              <button
+                type="button"
+                onClick={() => setShowFoodBank(true)}
+                className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+                style={{ color: accent, background: `${accent}14` }}
+              >
+                Food Bank
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => setShowFoodBank(true)}
-              className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-              style={{ color: accent, background: `${accent}14` }}
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-full"
+              style={{ background: "rgba(255,255,255,0.07)", color: "#888" }}
             >
-              Food Bank
+              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
-          )}
+          </div>
         </div>
 
         {/* Mode toggle — Apple segmented control */}

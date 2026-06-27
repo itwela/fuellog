@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useMutation } from "convex/react";
-import { useSheetDismiss } from "@/lib/useSheetDismiss";
+import { SheetHeader } from "@/components/ui/SheetHeader";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 
@@ -45,7 +45,6 @@ export function AddExerciseSheet({
   const addExercise = useMutation(api.workout.addExercise);
   const updateExercise = useMutation(api.workout.updateExercise);
   const generateUploadUrl = useMutation(api.fileStorage.generateUploadUrl);
-  const { dragProps, startDrag } = useSheetDismiss(onClose);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -111,11 +110,10 @@ export function AddExerciseSheet({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 320, damping: 38 }}
-        {...dragProps}
         className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl px-5 pt-4 pb-8"
         style={{ background: "#1a1a1a", maxHeight: "90dvh", overflowY: "auto" }}
       >
-        <div onPointerDown={startDrag} className="w-10 h-1 bg-[#3a3a3a] rounded-full mx-auto mb-5 touch-none cursor-grab" />
+        <SheetHeader onClose={onClose} />
         <h2 className="text-xl font-bold mb-5" style={{ fontFamily: "var(--font-display)" }}>
           {isEdit ? "Edit Exercise" : "Add Exercise"}
         </h2>

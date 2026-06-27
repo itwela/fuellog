@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
-import { useSheetDismiss } from "@/lib/useSheetDismiss";
+import { SheetHeader } from "@/components/ui/SheetHeader";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 
@@ -48,7 +48,6 @@ export function AddToPlanSheet({
 
   const plans = useQuery(api.mealplans.list, { userId }) ?? [];
   const addItem = useMutation(api.mealplans.addItem);
-  const { dragProps, startDrag } = useSheetDismiss(onClose);
 
   async function handleAdd() {
     if (!selectedPlanId) return;
@@ -88,7 +87,6 @@ export function AddToPlanSheet({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 340, damping: 40 }}
-        {...dragProps}
         className="fixed inset-x-0 bottom-0 z-50 px-5 pt-3 pb-10 rounded-t-[20px]"
         style={{
           background: "#1a1a1a",
@@ -98,7 +96,7 @@ export function AddToPlanSheet({
           paddingBottom: "calc(2.5rem + env(safe-area-inset-bottom))",
         }}
       >
-        <div onPointerDown={startDrag} className="w-10 h-1 rounded-full bg-[#3a3a3c] mx-auto mb-4 touch-none cursor-grab" />
+        <SheetHeader onClose={onClose} />
 
         <AnimatePresence mode="wait">
           {done ? (
