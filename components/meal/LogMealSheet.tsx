@@ -21,6 +21,7 @@ interface MacroForm {
   carbs: string;
   fiber: string;
   sugar: string;
+  notes: string;
 }
 
 const EMPTY: MacroForm = {
@@ -32,6 +33,7 @@ const EMPTY: MacroForm = {
   carbs: "",
   fiber: "",
   sugar: "",
+  notes: "",
 };
 
 export type EditingMeal = {
@@ -46,6 +48,7 @@ export type EditingMeal = {
   sugar?: number | null;
   quantity?: number | null;
   aiEstimated: boolean;
+  notes?: string | null;
 };
 
 function mealToForm(m: EditingMeal): MacroForm {
@@ -60,6 +63,7 @@ function mealToForm(m: EditingMeal): MacroForm {
     carbs: n(m.carbs),
     fiber: n(m.fiber),
     sugar: n(m.sugar),
+    notes: m.notes ?? "",
   };
 }
 
@@ -224,6 +228,7 @@ export function LogMealSheet({
         carbs: form.carbs ? Number(form.carbs) : undefined,
         fiber: form.fiber ? Number(form.fiber) : undefined,
         sugar: form.sugar ? Number(form.sugar) : undefined,
+        notes: form.notes.trim() || undefined,
         quantity:
           editingMeal.quantity != null && editingMeal.quantity > 0
             ? editingMeal.quantity
@@ -240,6 +245,7 @@ export function LogMealSheet({
         carbs: form.carbs ? Number(form.carbs) : undefined,
         fiber: form.fiber ? Number(form.fiber) : undefined,
         sugar: form.sugar ? Number(form.sugar) : undefined,
+        notes: form.notes.trim() || undefined,
         aiEstimated: aiRan,
         logDate,
       });
@@ -470,6 +476,16 @@ export function LogMealSheet({
                         </div>
                       ))}
                     </div>
+
+                    {/* Notes */}
+                    <textarea
+                      value={form.notes}
+                      onChange={(e) => set("notes", e.target.value)}
+                      placeholder="Ingredients, prep notes... (optional)"
+                      rows={2}
+                      className="w-full rounded-xl px-4 py-3 text-sm text-[#f2f2f2] placeholder-[#4a4a4a] outline-none resize-none"
+                      style={{ background: "#252525", border: "1px solid rgba(255,255,255,0.04)" }}
+                    />
 
                     <p className="text-[10px] text-center" style={{ color: "rgba(235,235,245,0.3)" }}>
                       AI estimated — edit any field before logging
@@ -725,9 +741,24 @@ export function LogMealSheet({
 
               {aiRan && (
                 <p className="text-[10px] text-[#6a6a6a] text-center">
-                  Values filled by Gemma 4 — review before saving
+                  AI estimated — review before saving
                 </p>
               )}
+
+              {/* Notes / ingredients */}
+              <div>
+                <label className="text-xs font-medium text-[#6a6a6a] block mb-1">
+                  Notes <span className="opacity-50">(ingredients, prep, etc.)</span>
+                </label>
+                <textarea
+                  value={form.notes}
+                  onChange={(e) => set("notes", e.target.value)}
+                  placeholder="e.g. shredded chicken, white rice, pinto beans, yams..."
+                  rows={2}
+                  className="w-full rounded-xl px-4 py-3 text-sm text-[#f2f2f2] placeholder-[#4a4a4a] outline-none resize-none"
+                  style={{ background: "#252525", border: "1px solid rgba(255,255,255,0.04)" }}
+                />
+              </div>
 
               {/* Food Bank shortcut */}
               <div className="flex items-center justify-between">

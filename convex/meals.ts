@@ -78,6 +78,7 @@ export const log = mutation({
     sugar: v.optional(v.number()),
     quantity: v.optional(v.number()),
     aiEstimated: v.boolean(),
+    notes: v.optional(v.string()),
     logDate: v.optional(v.string()), // ISO date YYYY-MM-DD; defaults to today
   },
   handler: async (ctx, args) => {
@@ -195,6 +196,7 @@ export const update = mutation({
     fiber: v.optional(v.number()),
     sugar: v.optional(v.number()),
     quantity: v.optional(v.number()),
+    notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { userId, id, quantity, ...fields } = args;

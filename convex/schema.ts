@@ -25,6 +25,7 @@ export default defineSchema({
     /** Servings count; macros are per single serving. Display total = macro × quantity. */
     quantity: v.optional(v.number()),
     aiEstimated: v.boolean(),
+    notes: v.optional(v.string()),
     imageStorageId: v.optional(v.string()),
     loggedAt: v.number(),
   })

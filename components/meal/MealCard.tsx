@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { AliveCard } from "@/components/AliveCard";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { AddToPlanSheet } from "./AddToPlanSheet";
 
 function storedQty(log: Doc<"meal_logs">): number {
   const q = log.quantity;
@@ -29,6 +30,7 @@ export function MealCard({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [bankSaved, setBankSaved] = useState(false);
   const [savingQty, setSavingQty] = useState(false);
+  const [addToPlanOpen, setAddToPlanOpen] = useState(false);
 
   useEffect(() => {
     setPendingQty(savedQty);
@@ -104,9 +106,16 @@ export function MealCard({
       >
         {/* Row 1: title (max 2 lines) ←→ kcal + delete */}
         <div className="flex items-start justify-between gap-3">
-          <p className="font-medium text-[#f2f2f2] text-sm leading-snug flex-1 min-w-0 line-clamp-2 break-words">
-            {log.name}
-          </p>
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-[#f2f2f2] text-sm leading-snug line-clamp-2 break-words">
+              {log.name}
+            </p>
+            {log.notes && (
+              <p className="text-[11px] text-[#6a6a6a] mt-0.5 line-clamp-2 break-words leading-snug">
+                {log.notes}
+              </p>
+            )}
+          </div>
           <div className="flex items-start gap-1 shrink-0">
             <div className="flex flex-col items-end">
               <span
@@ -212,6 +221,14 @@ export function MealCard({
             >
               {bankSaved ? "✓" : "↑ Bank"}
             </button>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setAddToPlanOpen(true); }}
+              className="text-[9px] font-medium uppercase tracking-wider transition-colors"
+              style={{ color: "#4a4a4a" }}
+            >
+              + Plan
+            </button>
           </div>
         </div>
       </AliveCard>
@@ -223,6 +240,14 @@ export function MealCard({
         onConfirm={confirmRemove}
         onCancel={() => setConfirmDelete(false)}
       />
+
+      {addToPlanOpen && (
+        <AddToPlanSheet
+          userId={userId}
+          meal={log}
+          onClose={() => setAddToPlanOpen(false)}
+        />
+      )}
     </>
   );
 }
