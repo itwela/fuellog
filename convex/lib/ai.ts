@@ -8,15 +8,15 @@ const BASE_URL = "https://openrouter.ai/api/v1";
  */
 // Smaller/faster models first for estimates; larger models for parse (needs more reasoning)
 const DEFAULT_PARSE_MODELS = [
-  "google/gemini-2.0-flash-001",
-  "openai/gpt-4o-mini",
-  "anthropic/claude-haiku-4-5",
+  "google/gemini-3.1-flash-lite",
+  "google/gemini-3.5-flash",
+  "~anthropic/claude-haiku-latest",
 ] as const;
 
 const DEFAULT_ESTIMATE_MODELS = [
-  "google/gemini-2.0-flash-001",
-  "openai/gpt-4o-mini",
-  "anthropic/claude-haiku-4-5",
+  "google/gemini-3.1-flash-lite",
+  "google/gemini-3.5-flash",
+  "~anthropic/claude-haiku-latest",
 ] as const;
 
 function splitModelList(raw: string | undefined): string[] {
@@ -57,9 +57,9 @@ function estimateModelChain(): string[] {
 }
 
 const DEFAULT_VISION_MODELS = [
-  "google/gemini-2.0-flash-001",
-  "openai/gpt-4o-mini",
-  "anthropic/claude-haiku-4-5",
+  "google/gemini-3.1-flash-lite",
+  "google/gemini-3.5-flash",
+  "~anthropic/claude-haiku-latest",
 ] as const;
 
 function visionModelChain(): string[] {
