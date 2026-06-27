@@ -95,6 +95,7 @@ export function LogMealSheet({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoContext, setPhotoContext] = useState("");
+  const [photoAnalyzed, setPhotoAnalyzed] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -151,6 +152,7 @@ export function LogMealSheet({
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
     setPhotoContext("");
+    setPhotoAnalyzed(false);
   }
 
   async function handleAnalyzePhoto() {
@@ -174,7 +176,8 @@ export function LogMealSheet({
         sugar: result.sugar?.toString() ?? "",
       });
       setAiRan(true);
-      setMode("manual");
+      setPhotoAnalyzed(true);
+      // stay in photo mode — results display inline
     } finally {
       setLoading(false);
     }
@@ -185,6 +188,7 @@ export function LogMealSheet({
     setPhotoPreview(null);
     setPhotoFile(null);
     setPhotoContext("");
+    setPhotoAnalyzed(false);
     if (fileRef.current) fileRef.current.value = "";
   }
 
@@ -301,9 +305,17 @@ export function LogMealSheet({
 
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl font-semibold" style={{ letterSpacing: "-0.02em" }}>
-            {isEdit ? "Edit Meal" : "Log Meal"}
+            {isEdit
+              ? "Edit Meal"
+              : mode === "photo"
+                ? photoAnalyzed
+                  ? "Review & Log"
+                  : "Snap a Meal"
+                : mode === "text"
+                  ? "AI Text Parse"
+                  : "Log Meal"}
           </h2>
-          {(isEdit || mode !== "text") && (
+          {(isEdit || (mode !== "text" && !photoAnalyzed)) && (
             <button
               type="button"
               onClick={() => setShowFoodBank(true)}
@@ -369,7 +381,103 @@ export function LogMealSheet({
               />
 
               <AnimatePresence mode="wait">
-                {loading ? (
+                {photoAnalyzed && !loading ? (
+                  /* ── Results state ── */
+                  <motion.div
+                    key="results"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.22 }}
+                    className="flex flex-col gap-4 w-full"
+                  >
+                    {/* Thumbnail + name row */}
+                    <div className="flex items-center gap-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photoPreview!}
+                        alt="analyzed food"
+                        className="w-16 h-16 rounded-xl object-cover flex-shrink-0"
+                        style={{ border: `1.5px solid ${accent}40` }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-medium mb-1" style={{ color: accent }}>AI identified</p>
+                        <input
+                          value={form.name}
+                          onChange={(e) => set("name", e.target.value)}
+                          className="w-full bg-[#252525] rounded-xl px-3 py-2.5 text-sm font-semibold text-[#f2f2f2] outline-none"
+                          style={{ letterSpacing: "-0.01em" }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Meal type */}
+                    <div className="flex gap-1.5">
+                      {(["breakfast", "lunch", "dinner", "snack"] as MealType[]).map((t) => (
+                        <button
+                          key={t}
+                          onClick={() => set("mealType", t)}
+                          className="flex-1 py-1.5 rounded-lg text-[11px] font-medium capitalize"
+                          style={{
+                            background: form.mealType === t ? "#3a3a3c" : "transparent",
+                            color: form.mealType === t ? "#f2f2f2" : "#6a6a6a",
+                          }}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Macro grid */}
+                    <div className="grid grid-cols-2 gap-2">
+                      {([
+                        ["calories", "Calories", "kcal"],
+                        ["protein", "Protein", "g"],
+                        ["fat", "Fat", "g"],
+                        ["carbs", "Carbs", "g"],
+                        ["fiber", "Fiber", "g"],
+                        ["sugar", "Sugar", "g"],
+                      ] as [keyof MacroForm, string, string][]).map(([field, label, unit]) => (
+                        <div key={field} className="rounded-xl px-3.5 py-2.5" style={{ background: "#252525", border: "1px solid rgba(255,255,255,0.05)" }}>
+                          <p className="text-[10px] font-medium mb-1" style={{ color: "#6a6a6a" }}>
+                            {label} <span className="opacity-50">{unit}</span>
+                          </p>
+                          <input
+                            type="number"
+                            value={form[field]}
+                            onChange={(e) => set(field, e.target.value)}
+                            className="w-full bg-transparent text-[18px] font-bold text-[#f2f2f2] outline-none tabular-nums"
+                            style={{ letterSpacing: "-0.02em" }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    <p className="text-[10px] text-center" style={{ color: "rgba(235,235,245,0.3)" }}>
+                      AI estimated — edit any field before logging
+                    </p>
+
+                    {/* Actions */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleClearPhoto}
+                        className="px-4 py-3 rounded-2xl text-sm font-medium"
+                        style={{ background: "#252525", color: "#6a6a6a", border: "1px solid rgba(255,255,255,0.06)" }}
+                      >
+                        Retake
+                      </button>
+                      <motion.button
+                        whileTap={{ scale: 0.97 }}
+                        onClick={handleSave}
+                        disabled={!form.name.trim()}
+                        className="flex-1 py-3 rounded-2xl text-[15px] font-semibold"
+                        style={{ background: accent, color: "#0e0e0e", opacity: form.name.trim() ? 1 : 0.35, letterSpacing: "-0.01em" }}
+                      >
+                        Log Meal
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                ) : loading ? (
                   /* ── Analyzing state ── */
                   <motion.div
                     key="analyzing"
