@@ -184,7 +184,8 @@ export function LogMealSheet({
         });
         if (!result.name || result.name === ctx) result = { ...result, name: ctx };
       }
-      setForm({
+      setForm((prev) => ({
+        ...prev,
         name: result.name,
         mealType: form.mealType,
         calories: result.calories?.toString() ?? "",
@@ -193,7 +194,7 @@ export function LogMealSheet({
         carbs: result.carbs?.toString() ?? "",
         fiber: result.fiber?.toString() ?? "",
         sugar: result.sugar?.toString() ?? "",
-      });
+      }));
       setAiRan(true);
       setPhotoAnalyzed(true);
     } catch (err) {
@@ -278,7 +279,8 @@ export function LogMealSheet({
     fiber?: number | null;
     sugar?: number | null;
   }) {
-    setForm({
+    setForm((prev) => ({
+      ...prev,
       name: entry.name,
       mealType: form.mealType,
       calories: entry.calories?.toString() ?? "",
@@ -287,7 +289,7 @@ export function LogMealSheet({
       carbs: entry.carbs?.toString() ?? "",
       fiber: entry.fiber?.toString() ?? "",
       sugar: entry.sugar?.toString() ?? "",
-    });
+    }));
     setAiRan(false);
     setShowFoodBank(false);
     setMode("manual");
