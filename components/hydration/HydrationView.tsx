@@ -144,13 +144,13 @@ export function HydrationView({ userId }: { userId: string }) {
     : false;
 
   async function handleQuickAdd(oz: number) {
-    await log({ userId, ozAmount: oz });
+    await log({ userId, ozAmount: oz, logDate: selectedISO ?? undefined });
   }
 
   async function handleCustomAdd() {
     const oz = parseFloat(customOz);
     if (!oz || oz <= 0) return;
-    await log({ userId, ozAmount: oz });
+    await log({ userId, ozAmount: oz, logDate: selectedISO ?? undefined });
     setCustomOz("");
     setCustomOpen(false);
   }

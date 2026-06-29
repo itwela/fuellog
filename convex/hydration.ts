@@ -1,13 +1,31 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+function dateToNoon(isoDate: string): number {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  return Date.UTC(y, m - 1, d, 12, 0, 0, 0);
+}
+
+function utcDayBounds(isoDate: string): { start: number; end: number } {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  return {
+    start: Date.UTC(y, m - 1, d, 0, 0, 0, 0),
+    end: Date.UTC(y, m - 1, d, 23, 59, 59, 999),
+  };
+}
+
 export const log = mutation({
-  args: { userId: v.string(), ozAmount: v.number() },
-  handler: async (ctx, { userId, ozAmount }) => {
+  args: {
+    userId: v.string(),
+    ozAmount: v.number(),
+    logDate: v.optional(v.string()), // ISO date YYYY-MM-DD from the client
+  },
+  handler: async (ctx, { userId, ozAmount, logDate }) => {
+    const loggedAt = logDate ? dateToNoon(logDate) : Date.now();
     await ctx.db.insert("hydration_logs", {
       userId,
       ozAmount,
-      loggedAt: Date.now(),
+      loggedAt,
     });
   },
 });
@@ -15,8 +33,7 @@ export const log = mutation({
 export const getByDate = query({
   args: { userId: v.string(), date: v.string() },
   handler: async (ctx, { userId, date }) => {
-    const start = new Date(date + "T00:00:00").getTime();
-    const end = new Date(date + "T23:59:59.999").getTime();
+    const { start, end } = utcDayBounds(date);
     return await ctx.db
       .query("hydration_logs")
       .withIndex("by_user_date", (q) =>
