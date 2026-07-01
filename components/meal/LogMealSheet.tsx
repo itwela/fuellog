@@ -129,6 +129,7 @@ export function LogMealSheet({
     setLoading(true);
     try {
       const result = await estimateText({
+        userId,
         foodDescription: form.name,
         knownCalories: form.calories ? Number(form.calories) : undefined,
         knownProtein: form.protein ? Number(form.protein) : undefined,
@@ -171,15 +172,16 @@ export function LogMealSheet({
       try {
         const { base64, mimeType } = await compressImage(photoFile);
         result = await estimateImage({
+          userId,
           imageBase64: base64,
           mimeType,
           context: ctx || undefined,
         });
       } catch (visionErr) {
         console.warn("Vision models failed, falling back to text estimate:", visionErr);
-        if (!ctx) throw visionErr; // no context to fall back with
-        // Fall back: use the user's context text as the food description
+        if (!ctx) throw visionErr;
         result = await estimateText({
+          userId,
           foodDescription: ctx,
         });
         if (!result.name || result.name === ctx) result = { ...result, name: ctx };

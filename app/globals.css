@@ -1,4 +1,12 @@
 @import 'tailwindcss';
+
+/* Clerk branding footer */
+.cl-footer, .cl-footer *, [class*="cl-internal"] a, [class*="cl-internal"] span {
+  color: #555 !important;
+}
+.cl-footer a:hover {
+  color: #888 !important;
+}
 @plugin 'lightswind/plugin';
 :root {
   /* Base */

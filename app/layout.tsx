@@ -1,32 +1,31 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 
 export const metadata: Metadata = {
-  title: "FuelLog",
-  description: "Personal nutrition and fitness tracker",
+  title: "macroe",
+  description: "Track what you eat. Keep moving.",
   manifest: "/manifest.json",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0e0e0e",
+  themeColor: "#0a0a0a",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="h-full">
-      <body className="h-full overflow-hidden bg-[#0e0e0e] text-[#f2f2f2]">
-        <ConvexClientProvider>{children}</ConvexClientProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" className="h-full">
+        <body className="h-full overflow-hidden bg-[#0a0a0a] text-[#f2f2f2]">
+          <ConvexClientProvider>{children}</ConvexClientProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

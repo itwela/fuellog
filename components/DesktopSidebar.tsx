@@ -7,8 +7,10 @@ import { api } from "@/convex/_generated/api";
 import { todayISO, sumMacros } from "@/lib/utils";
 import { MacroProgressBar } from "./MacroProgressBar";
 import { GoalsSheet } from "./GoalsSheet";
+import { SettingsSheet } from "./SettingsSheet";
 import { SugarDayStat } from "./SugarDayStat";
-import type { Tab } from "@/app/page";
+import { UserButton } from "./UserButton";
+import type { Tab } from "@/lib/types";
 
 const NAV_ITEMS: {
   id: Tab;
@@ -90,6 +92,7 @@ export function DesktopSidebar({
   userId: string;
 }) {
   const [goalsOpen, setGoalsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const today = todayISO();
   const logs = useQuery(api.meals.getByDate, { userId, date: today }) ?? [];
@@ -113,11 +116,8 @@ export function DesktopSidebar({
       >
         {/* Logo */}
         <div className="px-6 pt-9 pb-7">
-          <h1
-            className="text-[32px] font-bold leading-none tracking-tight"
-            style={{ color: "#b6ff4a", letterSpacing: "-0.03em" }}
-          >
-            FuelLog
+          <h1 className="text-sm font-bold tracking-[0.25em] uppercase text-[#b6ff4a]">
+            MACROE
           </h1>
           <p className="text-xs font-medium text-[#6a6a6a] mt-1">Personal Nutrition</p>
         </div>
@@ -272,12 +272,20 @@ export function DesktopSidebar({
           )}
         </div>
 
-        <div className="h-6" />
+        {/* User button */}
+        <div className="pt-3">
+          <UserButton onSettings={() => setSettingsOpen(true)} />
+        </div>
       </aside>
 
       <AnimatePresence>
         {goalsOpen && (
           <GoalsSheet userId={userId} onClose={() => setGoalsOpen(false)} />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {settingsOpen && (
+          <SettingsSheet userId={userId} onClose={() => setSettingsOpen(false)} />
         )}
       </AnimatePresence>
     </>

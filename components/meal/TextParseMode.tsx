@@ -115,7 +115,7 @@ export function TextParseMode({
     setLoading(true);
     setMeals(null);
     try {
-      const result = (await parse({ text: text.trim(), logDate })) as ParsedMeal[];
+      const result = (await parse({ userId, text: text.trim(), logDate })) as ParsedMeal[];
       setMeals(result);
     } finally {
       setLoading(false);

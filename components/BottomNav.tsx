@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { Tab } from "@/app/page";
+import type { Tab } from "@/lib/types";
 
 const TABS: {
   id: Tab;

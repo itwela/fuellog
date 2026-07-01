@@ -151,4 +151,20 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_date", ["userId", "loggedAt"]),
+
+  ai_usage: defineTable({
+    userId: v.string(),
+    type: v.union(
+      v.literal("text_estimate"),
+      v.literal("text_parse"),
+      v.literal("image_estimate"),
+      v.literal("grocery_parse")
+    ),
+    model: v.string(),
+    tokensIn: v.optional(v.number()),
+    tokensOut: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_date", ["userId", "createdAt"]),
 });
