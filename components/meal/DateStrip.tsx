@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { addDays, getWeekDays, isSameDay, toISO } from "@/lib/utils";
 
-const ACCENT = "#b6ff4a";
+const DEFAULT_ACCENT = "#b6ff4a";
 const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
 
 export function DateStrip({
@@ -11,11 +11,13 @@ export function DateStrip({
   onSelect,
   onOpenCalendar,
   loggedDates,
+  accent = DEFAULT_ACCENT,
 }: {
   selected: Date;
   onSelect: (date: Date) => void;
   onOpenCalendar: () => void;
   loggedDates: string[];
+  accent?: string;
 }) {
   const today = new Date();
   const week = getWeekDays(selected);
@@ -63,7 +65,7 @@ export function DateStrip({
               disabled={isFuture}
               className="flex-1 flex flex-col items-center gap-1 py-2 rounded-xl relative"
               style={{
-                background: isSelected ? ACCENT : isToday ? `${ACCENT}12` : "transparent",
+                background: isSelected ? accent : isToday ? `${accent}12` : "transparent",
                 opacity: isFuture ? 0.22 : 1,
               }}
             >
@@ -76,7 +78,7 @@ export function DateStrip({
               <span
                 className="text-sm font-bold leading-none"
                 style={{
-                  color: isSelected ? "#0e0e0e" : isToday ? ACCENT : "#f2f2f2",
+                  color: isSelected ? "#0e0e0e" : isToday ? accent : "#f2f2f2",
                   letterSpacing: "-0.02em",
                 }}
               >
@@ -86,7 +88,7 @@ export function DateStrip({
                 <motion.div
                   layoutId={`dot-${iso}`}
                   className="w-1 h-1 rounded-full"
-                  style={{ background: ACCENT }}
+                  style={{ background: accent }}
                 />
               )}
             </motion.button>

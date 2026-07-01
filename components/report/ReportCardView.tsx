@@ -1,20 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import {
   addDays,
   formatDayLabel,
-  formatWeekRangeLabel,
   getWeekDays,
   isoFromTimestamp,
   isSameDay,
   toISO,
 } from "@/lib/utils";
 import { MonthCalendar } from "@/components/meal/MonthCalendar";
+import { WeekNav } from "./WeekNav";
 import { WeeklyCaloriesChart } from "./WeeklyCaloriesChart";
 import { WeeklyHydrationChart } from "./WeeklyHydrationChart";
 import { ReportSummaryStats } from "./ReportSummaryStats";
@@ -89,9 +89,11 @@ export function ReportCardView({ userId }: { userId: string }) {
   const avgHydrationOz = sum(ouncesByDay) / divisor;
   const totalHydrationOz = sum(ouncesByDay);
 
+  const proteinGoal = goals?.protein ?? 0;
   const proteinByDay = week.map((day) =>
     (mealsByDay[toISO(day)] ?? []).reduce((s, m) => s + (m.protein ?? 0) * (m.quantity && m.quantity > 0 ? m.quantity : 1), 0)
   );
+  const avgProtein = sum(proteinByDay) / divisor;
   const carbsByDay = week.map((day) =>
     (mealsByDay[toISO(day)] ?? []).reduce((s, m) => s + (m.carbs ?? 0) * (m.quantity && m.quantity > 0 ? m.quantity : 1), 0)
   );
@@ -136,51 +138,30 @@ export function ReportCardView({ userId }: { userId: string }) {
 
   return (
     <div className="flex flex-col gap-4 px-4 pb-8">
-      {/* Week nav */}
-      <div className="flex items-center justify-between px-1">
-        <motion.button whileTap={{ scale: 0.85 }} onClick={prevWeek} className="p-2 rounded-full text-[#6a6a6a]" style={{ background: "#1a1a1a" }}>
-          <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-          </svg>
-        </motion.button>
+      <WeekNav
+        weekStart={week[0]}
+        isCurrentWeek={isCurrentWeek}
+        onPrev={prevWeek}
+        onNext={nextWeek}
+        onOpenCalendar={() => setCalendarOpen(true)}
+      />
 
-        <div className="text-center">
-          <p className="text-sm font-semibold" style={{ color: "#f2f2f2" }}>
-            {isCurrentWeek ? "This week" : formatWeekRangeLabel(week[0])}
-          </p>
-          {isCurrentWeek && (
-            <p className="text-[10px] text-[#6a6a6a]">{formatWeekRangeLabel(week[0])}</p>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1">
-          <motion.button
-            whileTap={{ scale: 0.85 }}
-            onClick={nextWeek}
-            disabled={isCurrentWeek}
-            className="p-2 rounded-full text-[#6a6a6a]"
-            style={{ background: "#1a1a1a", opacity: isCurrentWeek ? 0.3 : 1 }}
-          >
-            <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-            </svg>
-          </motion.button>
-          <motion.button whileTap={{ scale: 0.85 }} onClick={() => setCalendarOpen(true)} className="p-2 rounded-full text-[#6a6a6a]" style={{ background: "#1a1a1a" }}>
-            <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-            </svg>
-          </motion.button>
-        </div>
-      </div>
-
-      <WeeklyCaloriesChart days={week} calories={caloriesByDay} goal={calorieGoal} avgCalories={avgCalories} />
+      <WeeklyCaloriesChart
+        days={week}
+        calories={caloriesByDay}
+        calorieGoal={calorieGoal}
+        avgCalories={avgCalories}
+        protein={proteinByDay}
+        proteinGoal={proteinGoal}
+        avgProtein={avgProtein}
+      />
       <WeeklyHydrationChart days={week} ounces={ouncesByDay} avgOunces={avgHydrationOz} />
 
       <ReportSummaryStats
         avgCalories={avgCalories}
         daysGoalMet={daysGoalMet}
         daysWithGoal={daysWithGoal}
-        avgProtein={sum(proteinByDay) / divisor}
+        avgProtein={avgProtein}
         avgCarbs={sum(carbsByDay) / divisor}
         avgFat={sum(fatByDay) / divisor}
         totalHydrationOz={totalHydrationOz}

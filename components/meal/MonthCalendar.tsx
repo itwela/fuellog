@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { getMonthDays, isSameDay, toISO } from "@/lib/utils";
 
-const ACCENT = "#b6ff4a";
+const DEFAULT_ACCENT = "#b6ff4a";
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const DAY_HEADERS = ["M", "T", "W", "T", "F", "S", "S"];
 
@@ -13,11 +13,13 @@ export function MonthCalendar({
   loggedDates,
   onSelect,
   onClose,
+  accent = DEFAULT_ACCENT,
 }: {
   selected: Date;
   loggedDates: string[];
   onSelect: (date: Date) => void;
   onClose: () => void;
+  accent?: string;
 }) {
   const [viewYear, setViewYear] = useState(selected.getFullYear());
   const [viewMonth, setViewMonth] = useState(selected.getMonth() + 1); // 1-indexed
@@ -68,7 +70,7 @@ export function MonthCalendar({
 
           <span
             className="text-2xl font-black"
-            style={{ fontFamily: "var(--font-display)", color: ACCENT }}
+            style={{ fontFamily: "var(--font-display)", color: accent }}
           >
             {MONTH_NAMES[viewMonth - 1]} {viewYear}
           </span>
@@ -113,23 +115,23 @@ export function MonthCalendar({
                 disabled={isFuture}
                 className="flex flex-col items-center justify-center h-9 rounded-xl relative"
                 style={{
-                  background: isSelected ? ACCENT : "transparent",
+                  background: isSelected ? accent : "transparent",
                   opacity: isFuture ? 0.2 : 1,
                 }}
               >
                 <span
                   className="text-sm font-bold leading-none"
-                  style={{ color: isSelected ? "#0e0e0e" : isToday ? ACCENT : "#f2f2f2" }}
+                  style={{ color: isSelected ? "#0e0e0e" : isToday ? accent : "#f2f2f2" }}
                 >
                   {day.getDate()}
                 </span>
                 {hasData && !isSelected && (
-                  <div className="w-1 h-1 rounded-full mt-0.5" style={{ background: ACCENT }} />
+                  <div className="w-1 h-1 rounded-full mt-0.5" style={{ background: accent }} />
                 )}
                 {isToday && !isSelected && (
                   <div
                     className="absolute inset-0 rounded-xl pointer-events-none"
-                    style={{ boxShadow: `inset 0 0 0 1px ${ACCENT}50` }}
+                    style={{ boxShadow: `inset 0 0 0 1px ${accent}50` }}
                   />
                 )}
               </motion.button>

@@ -1,0 +1,36 @@
+"use client";
+
+function StatTile({ label, value, unit }: { label: string; value: string; unit?: string }) {
+  return (
+    <div className="rounded-2xl p-3.5" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.06)" }}>
+      <p className="text-[10px] font-medium text-[#6a6a6a] mb-1">{label}</p>
+      <p className="text-xl font-bold leading-none tabular-nums" style={{ color: "#f2f2f2", letterSpacing: "-0.02em" }}>
+        {value}
+        {unit && <span className="text-xs font-medium text-[#6a6a6a] ml-1">{unit}</span>}
+      </p>
+    </div>
+  );
+}
+
+export function WorkoutReportSummaryStats({
+  totalSessions,
+  daysTrained,
+  totalSets,
+  avgSessionMinutes,
+}: {
+  totalSessions: number;
+  daysTrained: number;
+  totalSets: number;
+  avgSessionMinutes: number | null;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2.5">
+      <StatTile label="Sessions this week" value={totalSessions.toString()} />
+      <StatTile label="Days trained" value={`${daysTrained} / 7`} />
+      <StatTile label="Sets completed" value={totalSets.toString()} />
+      {avgSessionMinutes !== null && (
+        <StatTile label="Avg session" value={Math.round(avgSessionMinutes).toString()} unit="min" />
+      )}
+    </div>
+  );
+}

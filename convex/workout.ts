@@ -1,5 +1,38 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, type QueryCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+
+function utcCivilDayBoundsMs(isoDate: string): { start: number; end: number } {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  return {
+    start: Date.UTC(y, m - 1, d, 0, 0, 0, 0),
+    end: Date.UTC(y, m - 1, d, 23, 59, 59, 999),
+  };
+}
+
+/** Bounds for a Mon–Sun week given the Monday as YYYY-MM-DD. */
+function utcWeekBoundsMs(weekStartDate: string): { start: number; end: number } {
+  const [y, m, d] = weekStartDate.split("-").map(Number);
+  const start = Date.UTC(y, m - 1, d, 0, 0, 0, 0);
+  const end = start + 7 * 24 * 60 * 60 * 1000 - 1;
+  return { start, end };
+}
+
+async function joinSessionExercises(ctx: QueryCtx, sessionId: Id<"workout_sessions">) {
+  const sessionExercises = await ctx.db
+    .query("workout_session_exercises")
+    .withIndex("by_session", (q) => q.eq("sessionId", sessionId))
+    .collect();
+
+  return await Promise.all(
+    sessionExercises
+      .sort((a, b) => a.order - b.order)
+      .map(async (se) => {
+        const exercise = await ctx.db.get(se.exerciseId);
+        return { ...se, exercise };
+      })
+  );
+}
 
 export const getExercises = query({
   args: { userId: v.string(), search: v.optional(v.string()) },
@@ -141,6 +174,85 @@ export const getSessionExercises = query({
         };
       })
     );
+  },
+});
+
+export const getSessionsByDate = query({
+  args: {
+    userId: v.string(),
+    date: v.string(), // ISO date string YYYY-MM-DD (client's calendar day)
+  },
+  handler: async (ctx, { userId, date }) => {
+    const { start, end } = utcCivilDayBoundsMs(date);
+    const sessions = await ctx.db
+      .query("workout_sessions")
+      .withIndex("by_user_started", (q) =>
+        q.eq("userId", userId).gte("startedAt", start).lte("startedAt", end)
+      )
+      .filter((q) => q.neq(q.field("completedAt"), undefined))
+      .order("desc")
+      .collect();
+
+    return await Promise.all(
+      sessions.map(async (session) => ({
+        ...session,
+        exercises: await joinSessionExercises(ctx, session._id),
+      }))
+    );
+  },
+});
+
+export const getSessionsInWeek = query({
+  args: {
+    userId: v.string(),
+    weekStartDate: v.string(), // Monday, ISO YYYY-MM-DD
+  },
+  handler: async (ctx, { userId, weekStartDate }) => {
+    const { start, end } = utcWeekBoundsMs(weekStartDate);
+    const sessions = await ctx.db
+      .query("workout_sessions")
+      .withIndex("by_user_started", (q) =>
+        q.eq("userId", userId).gte("startedAt", start).lte("startedAt", end)
+      )
+      .filter((q) => q.neq(q.field("completedAt"), undefined))
+      .order("desc")
+      .collect();
+
+    return await Promise.all(
+      sessions.map(async (session) => ({
+        ...session,
+        exercises: await joinSessionExercises(ctx, session._id),
+      }))
+    );
+  },
+});
+
+// Returns all ISO dates (YYYY-MM-DD) in a given month that have at least one completed session
+export const getLoggedWorkoutDatesInMonth = query({
+  args: {
+    userId: v.string(),
+    year: v.number(),
+    month: v.number(), // 1-12
+  },
+  handler: async (ctx, { userId, year, month }) => {
+    const start = new Date(year, month - 1, 1).getTime();
+    const end = new Date(year, month, 0, 23, 59, 59, 999).getTime();
+    const sessions = await ctx.db
+      .query("workout_sessions")
+      .withIndex("by_user_started", (q) =>
+        q.eq("userId", userId).gte("startedAt", start).lte("startedAt", end)
+      )
+      .filter((q) => q.neq(q.field("completedAt"), undefined))
+      .collect();
+
+    const dates = new Set<string>();
+    for (const session of sessions) {
+      const d = new Date(session.startedAt);
+      dates.add(
+        `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`
+      );
+    }
+    return Array.from(dates);
   },
 });
 

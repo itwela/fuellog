@@ -5,45 +5,34 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { ExerciseCard } from "./ExerciseCard";
-import { AddExerciseSheet } from "./AddExerciseSheet";
 import { WorkoutSession } from "./WorkoutSession";
+import { WorkoutLogView } from "./WorkoutLogView";
+import { StartWorkoutSheet } from "./StartWorkoutSheet";
 import { RoutineSheet } from "./RoutineSheet";
 import { AliveCard } from "@/components/AliveCard";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { WorkoutReportCardView } from "@/components/report/WorkoutReportCardView";
 
 const ACCENT = "#ff5623";
-type WorkoutTab = "library" | "routines";
+type WorkoutTab = "log" | "routines" | "report";
 
 export function WorkoutView({ userId }: { userId: string }) {
-  const [tab, setTab] = useState<WorkoutTab>("library");
-  const [addOpen, setAddOpen] = useState(false);
+  const [tab, setTab] = useState<WorkoutTab>("log");
+  const [startWorkoutOpen, setStartWorkoutOpen] = useState(false);
   const [routineSheetOpen, setRoutineSheetOpen] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Id<"exercises">[]>([]);
   const [sessionId, setSessionId] = useState<Id<"workout_sessions"> | null>(null);
-  const [selecting, setSelecting] = useState(false);
-  const [search, setSearch] = useState("");
-  const [editExercise, setEditExercise] = useState<(typeof exercises)[0] | null>(null);
   const [editRoutine, setEditRoutine] = useState<(typeof routines)[0] | null>(null);
   const [confirmRoutine, setConfirmRoutine] = useState<{ id: Id<"workout_routines">; name: string } | null>(null);
 
-  const exercises = useQuery(api.workout.getExercises, { userId, search: search || undefined }) ?? [];
   const routines = useQuery(api.workout.getRoutines, { userId }) ?? [];
   const startSession = useMutation(api.workout.startSession);
   const deleteRoutine = useMutation(api.workout.deleteRoutine);
-
-  function toggleSelect(id: Id<"exercises">) {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  }
 
   async function handleStartSession(exerciseIds: Id<"exercises">[], routineName?: string) {
     if (exerciseIds.length === 0) return;
     const id = await startSession({ userId, name: routineName ?? "Workout", exerciseIds });
     setSessionId(id);
-    setSelecting(false);
-    setSelectedIds([]);
+    setStartWorkoutOpen(false);
   }
 
   if (sessionId) {
@@ -64,90 +53,32 @@ export function WorkoutView({ userId }: { userId: string }) {
 
       {/* Tab switcher */}
       <div className="flex rounded-xl p-1 mx-5 mb-4" style={{ background: "#1a1a1a" }}>
-        {(["library", "routines"] as WorkoutTab[]).map((t) => (
+        {(["log", "routines", "report"] as WorkoutTab[]).map((t) => (
           <button
             key={t}
-            onClick={() => { setTab(t); setSelecting(false); setSelectedIds([]); }}
-            className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors"
+            onClick={() => setTab(t)}
+            className="flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-colors"
             style={{
               background: tab === t ? ACCENT : "transparent",
               color: tab === t ? "#0e0e0e" : "#6a6a6a",
               letterSpacing: tab === t ? "-0.01em" : undefined,
             }}
           >
-            {t === "library" ? "Library" : "Routines"}
+            {t}
           </button>
         ))}
       </div>
 
-      {tab === "library" ? (
+      {tab === "report" ? (
+        <WorkoutReportCardView userId={userId} accent={ACCENT} />
+      ) : tab === "log" ? (
         <>
-          {/* Search */}
-          <div className="px-5 mb-4">
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search exercises..."
-              className="w-full rounded-xl px-4 py-3 text-sm font-medium text-[#f2f2f2] placeholder-[#3a3a3a] outline-none" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.05)" }}
-            />
-          </div>
-
-          {/* Action bar */}
-          <div className="flex gap-2 px-5 mb-4">
-            <motion.button
-              whileTap={{ scale: 0.93 }}
-              onClick={() => { setSelecting(!selecting); setSelectedIds([]); }}
-              className="flex-1 py-3 rounded-xl text-sm font-bold"
-              style={{
-                background: selecting ? "#252525" : ACCENT,
-                color: selecting ? "#6a6a6a" : "#0e0e0e",
-                letterSpacing: "-0.01em",
-              }}
-            >
-              {selecting ? "Cancel" : "Start Workout"}
-            </motion.button>
-
-            {selecting && selectedIds.length > 0 && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                whileTap={{ scale: 0.93 }}
-                onClick={() => handleStartSession(selectedIds)}
-                className="px-5 py-3 rounded-xl text-sm font-bold"
-                style={{ background: ACCENT, color: "#0e0e0e" }}
-              >
-                Go ({selectedIds.length})
-              </motion.button>
-            )}
-          </div>
-
-          {/* Exercise list */}
-          <div className="flex-1 px-4 space-y-2 pb-32 md:pb-4">
-            <AnimatePresence>
-              {exercises.map((ex) => (
-                <ExerciseCard
-                  key={ex._id}
-                  exercise={ex}
-                  accent={ACCENT}
-                  selectable={selecting}
-                  selected={selectedIds.includes(ex._id)}
-                  onToggleSelect={() => toggleSelect(ex._id)}
-                  onEdit={() => setEditExercise(ex)}
-                />
-              ))}
-            </AnimatePresence>
-
-            {exercises.length === 0 && (
-              <p className="text-center text-[#6a6a6a] text-sm pt-8">
-                {search ? "No exercises found" : "Add your first exercise below"}
-              </p>
-            )}
-          </div>
+          <WorkoutLogView userId={userId} accent={ACCENT} />
 
           {/* FAB */}
           <motion.button
             whileTap={{ scale: 0.93 }}
-            onClick={() => setAddOpen(true)}
+            onClick={() => setStartWorkoutOpen(true)}
             className="fixed bottom-20 right-5 w-14 h-14 rounded-full flex items-center justify-center shadow-lg z-40"
             style={{ background: ACCENT }}
           >
@@ -247,12 +178,12 @@ export function WorkoutView({ userId }: { userId: string }) {
       )}
 
       <AnimatePresence>
-        {(addOpen || editExercise) && (
-          <AddExerciseSheet
+        {startWorkoutOpen && (
+          <StartWorkoutSheet
             userId={userId}
             accent={ACCENT}
-            editExercise={editExercise ?? undefined}
-            onClose={() => { setAddOpen(false); setEditExercise(null); }}
+            onClose={() => setStartWorkoutOpen(false)}
+            onStart={(exerciseIds, routineName) => handleStartSession(exerciseIds, routineName)}
           />
         )}
         {(routineSheetOpen || editRoutine) && (

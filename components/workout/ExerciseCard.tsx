@@ -91,7 +91,7 @@ export function ExerciseCard({
                 />
               </svg>
             )}
-            {!selectable && onEdit && (
+            {onEdit && (
               <motion.button
                 whileTap={{ scale: 0.88 }}
                 onClick={(e) => { e.stopPropagation(); onEdit(); }}
