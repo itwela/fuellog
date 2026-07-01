@@ -15,12 +15,15 @@ import { MacroProgressBar } from "@/components/MacroProgressBar";
 import { GoalsSheet } from "@/components/GoalsSheet";
 import { SugarDayStat } from "@/components/SugarDayStat";
 import { PlanPickerSheet } from "@/components/mealplan/PlanPickerSheet";
+import { ReportCardView } from "@/components/report/ReportCardView";
 
 const ACCENT = "#b6ff4a";
 
 type LogSheetState = { kind: "new" } | { kind: "edit"; meal: Doc<"meal_logs"> };
+type ViewMode = "log" | "report";
 
 export function MealLogView({ userId }: { userId: string }) {
+  const [viewMode, setViewMode] = useState<ViewMode>("log");
   const [logSheet, setLogSheet] = useState<LogSheetState | null>(null);
   const [goalsOpen, setGoalsOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -111,108 +114,136 @@ export function MealLogView({ userId }: { userId: string }) {
           </motion.p>
         </div>
 
-        <motion.button
-          whileTap={{ scale: 0.92 }}
-          onClick={() => setGoalsOpen(true)}
-          className="md:hidden mt-3 px-3.5 py-1.5 rounded-full text-xs font-medium"
-          style={{ background: "#1a1a1a", color: "#6a6a6a", border: "1px solid rgba(255,255,255,0.08)" }}
-        >
-          {goals ? "Goals" : "Set goals"}
-        </motion.button>
-      </div>
-
-      {/* Date strip */}
-      <DateStrip
-        selected={selectedDate}
-        onSelect={setSelectedDate}
-        onOpenCalendar={() => setCalendarOpen(true)}
-        loggedDates={loggedDates}
-      />
-
-      {/* Mobile: macro progress + sugar tally (selected day) */}
-      <div className="px-5 mb-6 md:hidden space-y-3">
-        <p className="text-xs font-medium text-[#6a6a6a] px-0.5">Day progress</p>
-        {goals ? (
-          <div className="rounded-2xl p-4 space-y-4" style={{ background: "#1a1a1a" }}>
-            <MacroProgressBar label="Protein" current={totals.protein ?? 0} goal={goals.protein} color={ACCENT} />
-            <MacroProgressBar label="Carbs" current={totals.carbs ?? 0} goal={goals.carbs} color="#4abaff" />
-            <MacroProgressBar label="Fat" current={totals.fat ?? 0} goal={goals.fat} color="#fdcb40" />
-          </div>
-        ) : (
-          <div className="flex gap-3">
-            <MacroRing label="Protein" value={totals.protein ?? 0} unit="g" color={ACCENT} goal={proteinGoal} />
-            <MacroRing label="Carbs" value={totals.carbs ?? 0} unit="g" color="#4abaff" goal={carbsGoal} />
-            <MacroRing label="Fat" value={totals.fat ?? 0} unit="g" color="#fdcb40" goal={fatGoal} />
-          </div>
-        )}
-        <SugarDayStat grams={totals.sugar ?? 0} dayLabel={sugarDayLabel} goalMet={calorieGoalMet} />
-      </div>
-
-      {/* Desktop: rings + sugar */}
-      <div className="hidden md:flex flex-col gap-3 px-5 mb-6">
-        <p className="text-xs font-medium text-[#6a6a6a] px-0.5">Day progress</p>
-        <div className="flex gap-3">
-          <MacroRing label="Protein" value={totals.protein ?? 0} unit="g" color={ACCENT} goal={proteinGoal} />
-          <MacroRing label="Carbs" value={totals.carbs ?? 0} unit="g" color="#4abaff" goal={carbsGoal} />
-          <MacroRing label="Fat" value={totals.fat ?? 0} unit="g" color="#fdcb40" goal={fatGoal} />
-        </div>
-        <SugarDayStat grams={totals.sugar ?? 0} dayLabel={sugarDayLabel} goalMet={calorieGoalMet} />
-      </div>
-
-      {/* Load plan button */}
-      <div className="px-5 mb-3 md:hidden">
-        <motion.button
-          whileTap={{ scale: 0.96 }}
-          onClick={() => setPlanPickerOpen(true)}
-          className="w-full py-2.5 rounded-xl text-xs font-medium flex items-center justify-center gap-2"
-          style={{ background: "#1a1a1a", color: "#c084fc", border: "1px solid rgba(192,132,252,0.2)" }}
-        >
-          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-          </svg>
-          Load Meal Plan
-        </motion.button>
-      </div>
-
-      {/* Meal list */}
-      <div className="flex-1 px-4 space-y-2 pb-32 md:pb-4">
-        {logs.length === 0 ? (
-          <motion.p
-            key={selectedISO}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center text-[#6a6a6a] text-sm pt-8"
+        <div className="flex flex-col items-end gap-2">
+          <div
+            className="flex items-center p-0.5 rounded-full"
+            style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.08)" }}
           >
-            {isToday
-              ? "Nothing logged yet — tap + to add a meal"
-              : `Nothing logged on ${formatDayLabel(selectedDate!)}`}
-          </motion.p>
-        ) : (
-          <AnimatePresence>
-            {logs.map((log) => (
-              <MealCard
-                key={log._id}
-                log={log}
-                accent={ACCENT}
-                userId={userId}
-                onEdit={(meal) => setLogSheet({ kind: "edit", meal })}
-              />
+            {(["log", "report"] as ViewMode[]).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className="px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors"
+                style={{
+                  background: viewMode === mode ? ACCENT : "transparent",
+                  color: viewMode === mode ? "#0e0e0e" : "#6a6a6a",
+                }}
+              >
+                {mode}
+              </button>
             ))}
-          </AnimatePresence>
-        )}
+          </div>
+          {viewMode === "log" && (
+            <motion.button
+              whileTap={{ scale: 0.92 }}
+              onClick={() => setGoalsOpen(true)}
+              className="md:hidden px-3.5 py-1.5 rounded-full text-xs font-medium"
+              style={{ background: "#1a1a1a", color: "#6a6a6a", border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              {goals ? "Goals" : "Set goals"}
+            </motion.button>
+          )}
+        </div>
       </div>
 
-      {/* FAB */}
-      <motion.button
-        whileTap={{ scale: 0.93 }}
-        onClick={() => setLogSheet({ kind: "new" })}
-        className="fixed bottom-20 right-5 w-14 h-14 rounded-full flex items-center justify-center shadow-lg z-40 md:bottom-8 md:right-8"
-        style={{ background: ACCENT }}
-      >
-        <svg width="24" height="24" fill="none" stroke="#0e0e0e" strokeWidth="2.5" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-      </motion.button>
+      {viewMode === "report" ? (
+        <ReportCardView userId={userId} />
+      ) : (
+        <>
+          {/* Date strip */}
+          <DateStrip
+            selected={selectedDate}
+            onSelect={setSelectedDate}
+            onOpenCalendar={() => setCalendarOpen(true)}
+            loggedDates={loggedDates}
+          />
+
+          {/* Mobile: macro progress + sugar tally (selected day) */}
+          <div className="px-5 mb-6 md:hidden space-y-3">
+            <p className="text-xs font-medium text-[#6a6a6a] px-0.5">Day progress</p>
+            {goals ? (
+              <div className="rounded-2xl p-4 space-y-4" style={{ background: "#1a1a1a" }}>
+                <MacroProgressBar label="Protein" current={totals.protein ?? 0} goal={goals.protein} color={ACCENT} />
+                <MacroProgressBar label="Carbs" current={totals.carbs ?? 0} goal={goals.carbs} color="#4abaff" />
+                <MacroProgressBar label="Fat" current={totals.fat ?? 0} goal={goals.fat} color="#fdcb40" />
+              </div>
+            ) : (
+              <div className="flex gap-3">
+                <MacroRing label="Protein" value={totals.protein ?? 0} unit="g" color={ACCENT} goal={proteinGoal} />
+                <MacroRing label="Carbs" value={totals.carbs ?? 0} unit="g" color="#4abaff" goal={carbsGoal} />
+                <MacroRing label="Fat" value={totals.fat ?? 0} unit="g" color="#fdcb40" goal={fatGoal} />
+              </div>
+            )}
+            <SugarDayStat grams={totals.sugar ?? 0} dayLabel={sugarDayLabel} goalMet={calorieGoalMet} />
+          </div>
+
+          {/* Desktop: rings + sugar */}
+          <div className="hidden md:flex flex-col gap-3 px-5 mb-6">
+            <p className="text-xs font-medium text-[#6a6a6a] px-0.5">Day progress</p>
+            <div className="flex gap-3">
+              <MacroRing label="Protein" value={totals.protein ?? 0} unit="g" color={ACCENT} goal={proteinGoal} />
+              <MacroRing label="Carbs" value={totals.carbs ?? 0} unit="g" color="#4abaff" goal={carbsGoal} />
+              <MacroRing label="Fat" value={totals.fat ?? 0} unit="g" color="#fdcb40" goal={fatGoal} />
+            </div>
+            <SugarDayStat grams={totals.sugar ?? 0} dayLabel={sugarDayLabel} goalMet={calorieGoalMet} />
+          </div>
+
+          {/* Load plan button */}
+          <div className="px-5 mb-3 md:hidden">
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              onClick={() => setPlanPickerOpen(true)}
+              className="w-full py-2.5 rounded-xl text-xs font-medium flex items-center justify-center gap-2"
+              style={{ background: "#1a1a1a", color: "#c084fc", border: "1px solid rgba(192,132,252,0.2)" }}
+            >
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+              </svg>
+              Load Meal Plan
+            </motion.button>
+          </div>
+
+          {/* Meal list */}
+          <div className="flex-1 px-4 space-y-2 pb-32 md:pb-4">
+            {logs.length === 0 ? (
+              <motion.p
+                key={selectedISO}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center text-[#6a6a6a] text-sm pt-8"
+              >
+                {isToday
+                  ? "Nothing logged yet — tap + to add a meal"
+                  : `Nothing logged on ${formatDayLabel(selectedDate!)}`}
+              </motion.p>
+            ) : (
+              <AnimatePresence>
+                {logs.map((log) => (
+                  <MealCard
+                    key={log._id}
+                    log={log}
+                    accent={ACCENT}
+                    userId={userId}
+                    onEdit={(meal) => setLogSheet({ kind: "edit", meal })}
+                  />
+                ))}
+              </AnimatePresence>
+            )}
+          </div>
+
+          {/* FAB */}
+          <motion.button
+            whileTap={{ scale: 0.93 }}
+            onClick={() => setLogSheet({ kind: "new" })}
+            className="fixed bottom-20 right-5 w-14 h-14 rounded-full flex items-center justify-center shadow-lg z-40 md:bottom-8 md:right-8"
+            style={{ background: ACCENT }}
+          >
+            <svg width="24" height="24" fill="none" stroke="#0e0e0e" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+          </motion.button>
+        </>
+      )}
 
       <AnimatePresence>
         {logSheet !== null && (

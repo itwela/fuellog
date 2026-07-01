@@ -89,6 +89,27 @@ export function formatDayLabel(date: Date): string {
   return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
+/** Monday of the week containing `date`. */
+export function getWeekStart(date: Date): Date {
+  return getWeekDays(date)[0];
+}
+
+/** UTC-component ISO date (YYYY-MM-DD) for a stored `loggedAt` timestamp. */
+export function isoFromTimestamp(ts: number): string {
+  const d = new Date(ts);
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+}
+
+/** e.g. "Jun 30 – Jul 6" for the Mon–Sun week starting at `weekStart`. */
+export function formatWeekRangeLabel(weekStart: Date): string {
+  const weekEnd = addDays(weekStart, 6);
+  const startLabel = weekStart.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const endLabel = weekStart.getMonth() === weekEnd.getMonth()
+    ? weekEnd.getDate().toString()
+    : weekEnd.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return `${startLabel} – ${endLabel}`;
+}
+
 export function toBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

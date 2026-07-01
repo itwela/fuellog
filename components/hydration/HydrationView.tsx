@@ -6,9 +6,10 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { HYDRATION_GOAL_OZ } from "@/lib/constants";
 
 const ACCENT = "#38bdf8";
-const GOAL_OZ = 128; // 1 gallon
+const GOAL_OZ = HYDRATION_GOAL_OZ;
 
 const QUICK_AMOUNTS = [8, 16, 24, 32];
 
