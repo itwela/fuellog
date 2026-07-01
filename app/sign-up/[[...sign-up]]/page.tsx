@@ -22,6 +22,8 @@ export default function SignUpPage() {
             formFieldLabel: "!text-[#aaa]",
             formFieldSuccessText: "!text-[#aaa]",
             formFieldHintText: "!text-[#aaa]",
+            formFieldInput: "!text-[#f2f2f2] !bg-[#1a1a1a] !border-white/10",
+            otpCodeFieldInput: "!text-[#f2f2f2] !bg-[#1a1a1a] !border-white/10",
             formButtonPrimary: "!bg-[#b6ff4a] !text-black hover:!bg-[#c8ff6a] font-semibold",
             footer: "!text-[#555]",
             footerText: "!text-[#555]",
