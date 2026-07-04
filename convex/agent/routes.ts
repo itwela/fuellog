@@ -113,4 +113,308 @@ export const agentRoutes: AgentRoute[] = [
     params: [{ name: "id", type: "string", required: true }],
     description: "Delete a hydration log",
   },
+
+  // ---- goals ----
+  { method: "GET", path: "/agent/goals", fn: api.goals.get, kind: "query", injectUser: true, params: [], description: "Get daily macro goals" },
+  {
+    method: "POST", path: "/agent/goals", fn: api.goals.set, kind: "mutation", injectUser: true,
+    params: [
+      { name: "calories", type: "number", required: true },
+      { name: "protein", type: "number", required: true },
+      { name: "carbs", type: "number", required: true },
+      { name: "fat", type: "number", required: true },
+    ],
+    description: "Set daily macro goals",
+  },
+
+  // ---- grocery ----
+  { method: "GET", path: "/agent/grocery/lists", fn: api.grocery.getLists, kind: "query", injectUser: true, params: [], description: "List active grocery lists" },
+  {
+    method: "GET", path: "/agent/grocery/list", fn: api.grocery.getList, kind: "query", injectUser: false,
+    owned: { param: "listId", table: "grocery_lists" },
+    params: [{ name: "listId", type: "string", required: true }],
+    description: "Get one grocery list",
+  },
+  {
+    method: "GET", path: "/agent/grocery/items", fn: api.grocery.getItems, kind: "query", injectUser: false,
+    owned: { param: "listId", table: "grocery_lists" },
+    params: [{ name: "listId", type: "string", required: true }],
+    description: "List items in a grocery list",
+  },
+  {
+    method: "POST", path: "/agent/grocery/lists", fn: api.grocery.createList, kind: "mutation", injectUser: true,
+    params: [{ name: "name", type: "string", required: true }],
+    description: "Create a grocery list",
+  },
+  {
+    method: "POST", path: "/agent/grocery/items", fn: api.grocery.addItemsBatch, kind: "mutation", injectUser: false,
+    owned: { param: "listId", table: "grocery_lists" },
+    params: [
+      { name: "listId", type: "string", required: true },
+      { name: "items", type: "json", required: true, description: "Array of {name, quantity?, unit?}" },
+    ],
+    description: "Add items to a grocery list (order auto-assigned)",
+  },
+  {
+    method: "PATCH", path: "/agent/grocery/item", fn: api.grocery.updateItemMeta, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "grocery_list_items" },
+    params: [
+      { name: "id", type: "string", required: true },
+      { name: "name", type: "string" },
+      { name: "quantity", type: "string", description: "Empty string clears" },
+      { name: "unit", type: "string", description: "Empty string clears" },
+    ],
+    description: "Update a grocery item's name/quantity/unit",
+  },
+  {
+    method: "POST", path: "/agent/grocery/item/toggle", fn: api.grocery.toggleItem, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "grocery_list_items" },
+    params: [
+      { name: "id", type: "string", required: true },
+      { name: "checked", type: "boolean", required: true },
+    ],
+    description: "Check/uncheck a grocery item",
+  },
+  {
+    method: "POST", path: "/agent/grocery/list/reset", fn: api.grocery.resetChecks, kind: "mutation", injectUser: false,
+    owned: { param: "listId", table: "grocery_lists" },
+    params: [{ name: "listId", type: "string", required: true }],
+    description: "Uncheck every item in a list",
+  },
+  {
+    method: "DELETE", path: "/agent/grocery/item", fn: api.grocery.removeItem, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "grocery_list_items" },
+    params: [{ name: "id", type: "string", required: true }],
+    description: "Delete a grocery item",
+  },
+  {
+    method: "POST", path: "/agent/grocery/list/archive", fn: api.grocery.archiveList, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "grocery_lists" },
+    params: [{ name: "id", type: "string", required: true }],
+    description: "Archive a grocery list",
+  },
+  {
+    method: "POST", path: "/agent/grocery/list/duplicate", fn: api.grocery.duplicateList, kind: "mutation", injectUser: true,
+    owned: { param: "id", table: "grocery_lists" },
+    params: [{ name: "id", type: "string", required: true }],
+    description: "Duplicate a grocery list (items unchecked)",
+  },
+  {
+    method: "PATCH", path: "/agent/grocery/list", fn: api.grocery.updateListMeta, kind: "mutation", injectUser: false,
+    owned: { param: "listId", table: "grocery_lists" },
+    params: [
+      { name: "listId", type: "string", required: true },
+      { name: "estimatedCost", type: "number" },
+    ],
+    description: "Update a grocery list's estimated cost",
+  },
+
+  // ---- foodbank ----
+  {
+    method: "GET", path: "/agent/foodbank", fn: api.foodbank.listPaginated, kind: "query", injectUser: true,
+    params: [{ name: "paginationOpts", type: "json", default: { numItems: 50, cursor: null }, description: "{numItems, cursor}" }],
+    description: "List food bank entries (paginated)",
+  },
+  {
+    method: "GET", path: "/agent/foodbank/search", fn: api.foodbank.search, kind: "query", injectUser: true,
+    params: [{ name: "query", type: "string", required: true }],
+    description: "Search the food bank by name",
+  },
+  {
+    method: "POST", path: "/agent/foodbank", fn: api.foodbank.upsert, kind: "mutation", injectUser: true,
+    params: [{ name: "name", type: "string", required: true }, ...MACROS],
+    description: "Create or update a food bank entry by name",
+  },
+  {
+    method: "PATCH", path: "/agent/foodbank", fn: api.foodbank.update, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "food_bank" },
+    params: [
+      { name: "id", type: "string", required: true },
+      { name: "name", type: "string", required: true },
+      ...MACROS,
+    ],
+    description: "Update a food bank entry by id",
+  },
+  {
+    method: "DELETE", path: "/agent/foodbank", fn: api.foodbank.remove, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "food_bank" },
+    params: [{ name: "id", type: "string", required: true }],
+    description: "Delete a food bank entry",
+  },
+
+  // ---- exercises ----
+  {
+    method: "GET", path: "/agent/exercises", fn: api.workout.getExercises, kind: "query", injectUser: true,
+    params: [{ name: "search", type: "string" }],
+    description: "List (or search) exercises",
+  },
+  {
+    method: "POST", path: "/agent/exercises", fn: api.workout.addExercise, kind: "mutation", injectUser: true,
+    params: [
+      { name: "name", type: "string", required: true },
+      { name: "muscleGroup", type: "string" },
+      { name: "defaultSets", type: "number" },
+      { name: "defaultReps", type: "string" },
+      { name: "defaultWeight", type: "string" },
+    ],
+    description: "Add an exercise",
+  },
+  {
+    method: "PATCH", path: "/agent/exercises", fn: api.workout.updateExercise, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "exercises" },
+    params: [
+      { name: "id", type: "string", required: true },
+      { name: "name", type: "string" },
+      { name: "muscleGroup", type: "string" },
+      { name: "defaultSets", type: "number" },
+      { name: "defaultReps", type: "string" },
+      { name: "defaultWeight", type: "string" },
+    ],
+    description: "Update an exercise",
+  },
+  {
+    method: "DELETE", path: "/agent/exercises", fn: api.workout.removeExercise, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "exercises" },
+    params: [{ name: "id", type: "string", required: true }],
+    description: "Delete an exercise",
+  },
+
+  // ---- workouts (sessions) ----
+  { method: "GET", path: "/agent/workouts", fn: api.workout.getSessions, kind: "query", injectUser: true, params: [], description: "List recent workout sessions (latest 20)" },
+  {
+    method: "GET", path: "/agent/workouts/by-date", fn: api.workout.getSessionsByDate, kind: "query", injectUser: true,
+    params: [{ name: "date", type: "string", required: true }],
+    description: "Completed sessions on a day, with exercises",
+  },
+  {
+    method: "GET", path: "/agent/workouts/week", fn: api.workout.getSessionsInWeek, kind: "query", injectUser: true,
+    params: [{ name: "weekStartDate", type: "string", required: true, description: "Monday, YYYY-MM-DD" }],
+    description: "Completed sessions in a Mon-Sun week",
+  },
+  {
+    method: "POST", path: "/agent/workouts", fn: api.workout.startSession, kind: "mutation", injectUser: true,
+    params: [
+      { name: "name", type: "string", required: true },
+      { name: "exerciseIds", type: "json", required: true, description: "Array of exercise ids" },
+    ],
+    description: "Start a workout session",
+  },
+  {
+    method: "GET", path: "/agent/workouts/exercises", fn: api.workout.getSessionExercises, kind: "query", injectUser: false,
+    owned: { param: "sessionId", table: "workout_sessions" },
+    params: [{ name: "sessionId", type: "string", required: true }],
+    description: "Exercises + sets in a session",
+  },
+  {
+    method: "POST", path: "/agent/workouts/set", fn: api.workout.updateSet, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "workout_session_exercises" },
+    params: [
+      { name: "id", type: "string", required: true, description: "workout_session_exercises id" },
+      { name: "setIndex", type: "number", required: true },
+      { name: "reps", type: "number" },
+      { name: "weight", type: "string" },
+      { name: "completed", type: "boolean", required: true },
+    ],
+    description: "Record a set",
+  },
+  {
+    method: "POST", path: "/agent/workouts/complete", fn: api.workout.completeSession, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "workout_sessions" },
+    params: [{ name: "id", type: "string", required: true }],
+    description: "Mark a session complete",
+  },
+
+  // ---- routines ----
+  { method: "GET", path: "/agent/routines", fn: api.workout.getRoutines, kind: "query", injectUser: true, params: [], description: "List workout routines with exercises" },
+  {
+    method: "POST", path: "/agent/routines", fn: api.workout.createRoutine, kind: "mutation", injectUser: true,
+    params: [
+      { name: "name", type: "string", required: true },
+      { name: "exerciseIds", type: "json", required: true },
+    ],
+    description: "Create a routine",
+  },
+  {
+    method: "PATCH", path: "/agent/routines", fn: api.workout.updateRoutine, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "workout_routines" },
+    params: [
+      { name: "id", type: "string", required: true },
+      { name: "name", type: "string" },
+      { name: "exerciseIds", type: "json" },
+    ],
+    description: "Update a routine",
+  },
+  {
+    method: "DELETE", path: "/agent/routines", fn: api.workout.deleteRoutine, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "workout_routines" },
+    params: [{ name: "id", type: "string", required: true }],
+    description: "Delete a routine",
+  },
+
+  // ---- meal plans ----
+  { method: "GET", path: "/agent/mealplans", fn: api.mealplans.list, kind: "query", injectUser: true, params: [], description: "List meal plans with item counts" },
+  {
+    method: "GET", path: "/agent/mealplans/items", fn: api.mealplans.getItems, kind: "query", injectUser: false,
+    owned: { param: "planId", table: "meal_plans" },
+    params: [{ name: "planId", type: "string", required: true }],
+    description: "Items in a meal plan",
+  },
+  {
+    method: "POST", path: "/agent/mealplans", fn: api.mealplans.createPlan, kind: "mutation", injectUser: true,
+    params: [{ name: "name", type: "string", required: true }],
+    description: "Create a meal plan",
+  },
+  {
+    method: "PATCH", path: "/agent/mealplans", fn: api.mealplans.renamePlan, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "meal_plans" },
+    params: [
+      { name: "id", type: "string", required: true },
+      { name: "name", type: "string", required: true },
+    ],
+    description: "Rename a meal plan",
+  },
+  {
+    method: "DELETE", path: "/agent/mealplans", fn: api.mealplans.deletePlan, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "meal_plans" },
+    params: [{ name: "id", type: "string", required: true }],
+    description: "Delete a meal plan and its items",
+  },
+  {
+    method: "POST", path: "/agent/mealplans/items", fn: api.mealplans.addItem, kind: "mutation", injectUser: false,
+    owned: { param: "planId", table: "meal_plans" },
+    params: [
+      { name: "planId", type: "string", required: true },
+      { name: "name", type: "string", required: true },
+      { name: "mealType", type: "string", required: true, enum: MEAL_TYPES },
+      { name: "day", type: "string", description: "e.g. monday" },
+      ...MACROS,
+      { name: "order", type: "number", default: 0 },
+    ],
+    description: "Add an item to a meal plan",
+  },
+  {
+    method: "PATCH", path: "/agent/mealplans/item", fn: api.mealplans.updateItem, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "meal_plan_items" },
+    params: [
+      { name: "id", type: "string", required: true },
+      { name: "name", type: "string" },
+      { name: "mealType", type: "string", enum: MEAL_TYPES },
+      ...MACROS,
+    ],
+    description: "Update a meal plan item",
+  },
+  {
+    method: "DELETE", path: "/agent/mealplans/item", fn: api.mealplans.removeItem, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "meal_plan_items" },
+    params: [{ name: "id", type: "string", required: true }],
+    description: "Remove a meal plan item",
+  },
+
+  // ---- reports & usage ----
+  {
+    method: "GET", path: "/agent/reports/week", fn: api.reports.getWeek, kind: "query", injectUser: true,
+    params: [{ name: "weekStartDate", type: "string", required: true, description: "Monday, YYYY-MM-DD" }],
+    description: "Weekly meals + hydration report",
+  },
+  { method: "GET", path: "/agent/ai-usage", fn: api.aiUsage.getMonthly, kind: "query", injectUser: true, params: [], description: "This month's AI usage stats" },
 ];
