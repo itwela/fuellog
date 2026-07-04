@@ -1,0 +1,20 @@
+{
+  "name": "fuel-cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agent-first CLI for FuelLog",
+  "type": "module",
+  "bin": { "fuel": "./dist/index.js" },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --clean --banner.js '#!/usr/bin/env node'",
+    "test": "vitest run",
+    "smoke": "bash smoke.sh"
+  },
+  "dependencies": { "commander": "^12.1.0" },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsup": "^8.1.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}
