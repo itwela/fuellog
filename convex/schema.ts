@@ -169,4 +169,15 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_date", ["userId", "createdAt"]),
+
+  api_keys: defineTable({
+    userId: v.string(),
+    name: v.string(),
+    keyHash: v.string(),
+    createdAt: v.number(),
+    lastUsedAt: v.optional(v.number()),
+    revokedAt: v.optional(v.number()),
+  })
+    .index("by_hash", ["keyHash"])
+    .index("by_user", ["userId"]),
 });
