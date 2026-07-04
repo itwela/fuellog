@@ -6,7 +6,7 @@
   "type": "module",
   "bin": { "fuel": "./dist/index.js" },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --clean --banner.js '#!/usr/bin/env node'",
+    "build": "tsup",
     "test": "vitest run",
     "smoke": "bash smoke.sh"
   },
