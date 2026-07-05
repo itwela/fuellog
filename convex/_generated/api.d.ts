@@ -8,12 +8,17 @@
  * @module
  */
 
+import type * as agent_auth from "../agent/auth.js";
+import type * as agent_guard from "../agent/guard.js";
+import type * as agent_keys from "../agent/keys.js";
+import type * as agent_routes from "../agent/routes.js";
 import type * as aiUsage from "../aiUsage.js";
 import type * as fileStorage from "../fileStorage.js";
 import type * as foodbank from "../foodbank.js";
 import type * as goals from "../goals.js";
 import type * as grocery from "../grocery.js";
 import type * as groceryActions from "../groceryActions.js";
+import type * as http from "../http.js";
 import type * as hydration from "../hydration.js";
 import type * as lib_ai from "../lib/ai.js";
 import type * as mealActions from "../mealActions.js";
@@ -30,12 +35,17 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "agent/auth": typeof agent_auth;
+  "agent/guard": typeof agent_guard;
+  "agent/keys": typeof agent_keys;
+  "agent/routes": typeof agent_routes;
   aiUsage: typeof aiUsage;
   fileStorage: typeof fileStorage;
   foodbank: typeof foodbank;
   goals: typeof goals;
   grocery: typeof grocery;
   groceryActions: typeof groceryActions;
+  http: typeof http;
   hydration: typeof hydration;
   "lib/ai": typeof lib_ai;
   mealActions: typeof mealActions;
