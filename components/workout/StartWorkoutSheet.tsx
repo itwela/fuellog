@@ -9,7 +9,7 @@ import { SheetHeader } from "@/components/ui/SheetHeader";
 import { ExerciseCard } from "./ExerciseCard";
 import { AddExerciseSheet } from "./AddExerciseSheet";
 
-type PickerMode = "routines" | "custom";
+type PickerMode = "routines" | "exercises";
 
 export function StartWorkoutSheet({
   userId,
@@ -24,23 +24,16 @@ export function StartWorkoutSheet({
 }) {
   const [mode, setMode] = useState<PickerMode>("routines");
   const [search, setSearch] = useState("");
-  const [selectedIds, setSelectedIds] = useState<Id<"exercises">[]>([]);
   const [addExerciseOpen, setAddExerciseOpen] = useState(false);
 
   const routines = useQuery(api.workout.getRoutines, { userId }) ?? [];
   const exercises = useQuery(api.workout.getExercises, { userId, search: search || undefined }) ?? [];
   const [editExercise, setEditExercise] = useState<(typeof exercises)[0] | null>(null);
 
-  // Once routines have loaded, default to "custom" if the user has none to pick from.
+  // Once routines have loaded, default to the Exercises tab if the user has none to start from.
   useEffect(() => {
-    if (routines.length === 0) setMode("custom");
+    if (routines.length === 0) setMode("exercises");
   }, [routines.length]);
-
-  function toggleSelect(id: Id<"exercises">) {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  }
 
   return (
     <>
@@ -60,17 +53,17 @@ export function StartWorkoutSheet({
         style={{
           background: "#1a1a1a",
           maxHeight: "calc(100dvh - 16px)",
-          paddingBottom: "calc(1rem + env(safe-area-inset-bottom))",
+          paddingBottom: "calc(1rem + env(safe-area-inset-bottom) + 84px)",
         }}
       >
         <SheetHeader onClose={onClose} />
         <h2 className="text-xl font-bold mb-4" style={{ fontFamily: "var(--font-display)" }}>
-          Start Workout
+          {mode === "routines" ? "Start Workout" : "Exercises"}
         </h2>
 
         {/* Mode switcher */}
         <div className="flex rounded-xl p-1 mb-4" style={{ background: "#252525" }}>
-          {(["routines", "custom"] as PickerMode[]).map((m) => (
+          {(["routines", "exercises"] as PickerMode[]).map((m) => (
             <button
               key={m}
               onClick={() => setMode(m)}
@@ -86,7 +79,7 @@ export function StartWorkoutSheet({
         </div>
 
         {mode === "routines" ? (
-          <div className="flex-1 overflow-y-auto space-y-2 pb-2">
+          <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pb-2">
             {routines.map((routine) => (
               <motion.button
                 key={routine._id}
@@ -109,7 +102,7 @@ export function StartWorkoutSheet({
 
             {routines.length === 0 && (
               <p className="text-center text-[#6a6a6a] text-sm pt-8">
-                No routines yet — switch to Custom to build a one-off workout
+                No routines yet — switch to Exercises to add some, then build a routine
               </p>
             )}
           </div>
@@ -132,16 +125,13 @@ export function StartWorkoutSheet({
               + Add new exercise
             </motion.button>
 
-            <div className="flex-1 overflow-y-auto space-y-2 pb-2">
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pb-2">
               <AnimatePresence>
                 {exercises.map((ex) => (
                   <ExerciseCard
                     key={ex._id}
                     exercise={ex}
                     accent={accent}
-                    selectable
-                    selected={selectedIds.includes(ex._id)}
-                    onToggleSelect={() => toggleSelect(ex._id)}
                     onEdit={() => setEditExercise(ex)}
                   />
                 ))}
@@ -153,21 +143,6 @@ export function StartWorkoutSheet({
                 </p>
               )}
             </div>
-
-            <motion.button
-              whileTap={{ scale: 0.96 }}
-              onClick={() => onStart(selectedIds)}
-              disabled={selectedIds.length === 0}
-              className="w-full mt-3 py-4 rounded-2xl font-bold text-base"
-              style={{
-                background: accent,
-                color: "#0e0e0e",
-                opacity: selectedIds.length > 0 ? 1 : 0.4,
-                fontFamily: "var(--font-display)",
-              }}
-            >
-              Start Workout {selectedIds.length > 0 ? `(${selectedIds.length})` : ""}
-            </motion.button>
           </>
         )}
       </motion.div>

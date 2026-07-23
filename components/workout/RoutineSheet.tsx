@@ -79,7 +79,7 @@ export function RoutineSheet({
           background: "#1a1a1a",
           maxHeight: "calc(100dvh - 16px)",
           overflowY: "auto",
-          paddingBottom: "calc(4rem + env(safe-area-inset-bottom))",
+          paddingBottom: "calc(1rem + env(safe-area-inset-bottom) + 84px)",
         }}
       >
         <SheetHeader onClose={onClose} />
