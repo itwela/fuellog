@@ -111,10 +111,11 @@ export const updateEntry = mutation({
     if (weight !== undefined && (!Number.isFinite(weight) || weight <= 0)) {
       throw new Error("Weight must be a positive number");
     }
-    const patch: { weight?: number; unit?: "lb" | "kg"; notes?: string } = {};
+    const patch: { weight?: number; unit?: "lb" | "kg"; notes?: string | undefined } = {};
     if (weight !== undefined) patch.weight = weight;
     if (unit !== undefined) patch.unit = unit;
-    if (notes !== undefined) patch.notes = notes;
+    // An empty string clears the note rather than storing "".
+    if (notes !== undefined) patch.notes = notes.trim() || undefined;
     await ctx.db.patch(id, patch);
   },
 });

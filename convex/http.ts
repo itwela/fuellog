@@ -70,13 +70,21 @@ async function buildArgs(route: AgentRoute, request: Request): Promise<Record<st
   const args: Record<string, unknown> = {};
   for (const spec of route.params) {
     let value = raw[spec.name];
-    if (value === undefined || value === "") {
+    // An empty string normally means "not supplied", except on params marked
+    // clearable — there it's an explicit request to blank the field out.
+    const treatAsAbsent = value === undefined || (value === "" && !spec.clearable);
+    if (treatAsAbsent) {
       if (spec.default !== undefined) value = spec.default;
       else if (spec.required) {
         throw new AgentError(400, "missing_param", `Missing required param '${spec.name}'`, `GET /agent/schema describes every route's params.`);
       } else continue;
     } else {
       value = coerce(spec, value);
+    }
+    // Skip enum validation for a deliberate clear — "" is never a listed value.
+    if (spec.clearable && value === "") {
+      args[spec.name] = value;
+      continue;
     }
     if (spec.enum && !spec.enum.includes(String(value))) {
       throw new AgentError(400, "invalid_param", `Param '${spec.name}' must be one of: ${spec.enum.join(", ")}`);

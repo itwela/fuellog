@@ -73,6 +73,29 @@ export const commands: CommandSpec[] = [
   { name: "hydration delete", desc: "Delete a hydration log", method: "DELETE", path: "/agent/hydration", confirm: true,
     opts: [{ flag: "--id <id>", api: "id", type: "str", required: true }] },
 
+  // weight
+  { name: "weight list", desc: "Recent weigh-ins, newest first", method: "GET", path: "/agent/weight",
+    opts: [{ flag: "--limit <n>", api: "limit", type: "num", desc: "Default 60, max 365" }] },
+  { name: "weight show", desc: "The weigh-in for one day", method: "GET", path: "/agent/weight/day",
+    opts: [{ flag: "--date <date>", api: "date", type: "date", default: "today" }] },
+  { name: "weight summary", desc: "Latest weight + change vs last entry and last week", method: "GET", path: "/agent/weight/summary", opts: [] },
+  { name: "weight log", desc: "Log a weigh-in (one per day; re-logging corrects it)", method: "POST", path: "/agent/weight",
+    opts: [
+      { flag: "--weight <n>", api: "weight", type: "num", required: true },
+      { flag: "--unit <unit>", api: "unit", type: "str", default: "lb", desc: "lb|kg" },
+      { flag: "--date <date>", api: "date", type: "date", default: "today" },
+      { flag: "--notes <text>", api: "notes", type: "str" },
+    ] },
+  { name: "weight update", desc: "Update a weigh-in", method: "PATCH", path: "/agent/weight",
+    opts: [
+      { flag: "--id <id>", api: "id", type: "str", required: true },
+      { flag: "--weight <n>", api: "weight", type: "num" },
+      { flag: "--unit <unit>", api: "unit", type: "str", desc: "lb|kg" },
+      { flag: "--notes <text>", api: "notes", type: "str", desc: 'Pass "" to clear' },
+    ] },
+  { name: "weight delete", desc: "Delete a weigh-in", method: "DELETE", path: "/agent/weight", confirm: true,
+    opts: [{ flag: "--id <id>", api: "id", type: "str", required: true }] },
+
   // goals
   { name: "goals show", desc: "Show daily macro goals", method: "GET", path: "/agent/goals", opts: [] },
   { name: "goals set", desc: "Set daily macro goals", method: "POST", path: "/agent/goals",
@@ -121,6 +144,32 @@ export const commands: CommandSpec[] = [
       { flag: "--list <id>", api: "listId", type: "str", required: true },
       { flag: "--cost <n>", api: "estimatedCost", type: "num" },
     ] },
+
+  // trips (completed shopping runs)
+  { name: "trips list", desc: "Saved shopping trips, newest first", method: "GET", path: "/agent/grocery/trips",
+    opts: [{ flag: "--limit <n>", api: "limit", type: "num", desc: "Default 50, max 200" }] },
+  { name: "trips stats", desc: "How often you shop and what you spend", method: "GET", path: "/agent/grocery/trips/stats", opts: [] },
+  { name: "trips items", desc: "What was bought on one trip", method: "GET", path: "/agent/grocery/trip/items",
+    opts: [{ flag: "--trip <id>", api: "tripId", type: "str", required: true }] },
+  { name: "trips save", desc: "Save a shopping run (snapshots the list's checked items)", method: "POST", path: "/agent/grocery/trips",
+    opts: [
+      { flag: "--list <id>", api: "listId", type: "str", required: true },
+      { flag: "--cost <n>", api: "actualCost", type: "num", desc: "What you actually paid" },
+      { flag: "--store <name>", api: "store", type: "str" },
+      { flag: "--notes <text>", api: "notes", type: "str" },
+      { flag: "--at <ms>", api: "shoppedAt", type: "num", desc: "Epoch ms; omit for now" },
+      { flag: "--reset-list <bool>", api: "resetList", type: "str", desc: "true|false — uncheck items after (default true)" },
+    ] },
+  { name: "trips update", desc: "Update a saved trip", method: "PATCH", path: "/agent/grocery/trip",
+    opts: [
+      { flag: "--id <id>", api: "id", type: "str", required: true },
+      { flag: "--cost <n>", api: "actualCost", type: "num" },
+      { flag: "--store <name>", api: "store", type: "str", desc: 'Pass "" to clear' },
+      { flag: "--notes <text>", api: "notes", type: "str", desc: 'Pass "" to clear' },
+      { flag: "--at <ms>", api: "shoppedAt", type: "num", desc: "Epoch ms" },
+    ] },
+  { name: "trips delete", desc: "Delete a trip and its item snapshot", method: "DELETE", path: "/agent/grocery/trip", confirm: true,
+    opts: [{ flag: "--id <id>", api: "id", type: "str", required: true }] },
 
   // foodbank
   { name: "foodbank list", desc: "List food bank entries", method: "GET", path: "/agent/foodbank", opts: [] },
@@ -182,6 +231,35 @@ export const commands: CommandSpec[] = [
       { flag: "--done", api: "completed", type: "bool" },
     ] },
   { name: "workouts complete", desc: "Complete a session", method: "POST", path: "/agent/workouts/complete",
+    opts: [{ flag: "--id <id>", api: "id", type: "str", required: true }] },
+  { name: "workouts log", desc: "Record a workout that already happened (use this for 'I did X today')", method: "POST", path: "/agent/workouts/log",
+    opts: [
+      { flag: "--name <name>", api: "name", type: "str", required: true },
+      { flag: "--exercises <json>", api: "exerciseIds", type: "json", required: true, desc: '["<exerciseId>", ...]' },
+      { flag: "--date <date>", api: "date", type: "date", default: "today" },
+    ] },
+  { name: "workouts show", desc: "One session with its exercises and sets", method: "GET", path: "/agent/workouts/session",
+    opts: [{ flag: "--session <id>", api: "sessionId", type: "str", required: true }] },
+  { name: "workouts update", desc: "Rename a session or move it to another day", method: "PATCH", path: "/agent/workouts",
+    opts: [
+      { flag: "--id <id>", api: "id", type: "str", required: true },
+      { flag: "--name <name>", api: "name", type: "str" },
+      { flag: "--at <ms>", api: "startedAt", type: "num", desc: "Epoch ms" },
+    ] },
+  { name: "workouts sets", desc: "Replace an exercise's whole set list (edit/add/remove in one call)", method: "POST", path: "/agent/workouts/sets",
+    opts: [
+      { flag: "--id <id>", api: "id", type: "str", required: true, desc: "session-exercise id" },
+      { flag: "--sets <json>", api: "sets", type: "json", required: true, desc: '[{"reps":10,"weight":"135","completed":true}, ...]' },
+    ] },
+  { name: "workouts add-exercise", desc: "Add an exercise to an existing session", method: "POST", path: "/agent/workouts/exercises",
+    opts: [
+      { flag: "--session <id>", api: "sessionId", type: "str", required: true },
+      { flag: "--exercise <id>", api: "exerciseId", type: "str", required: true },
+      { flag: "--sets <n>", api: "setCount", type: "num", desc: "Defaults to the exercise's default" },
+    ] },
+  { name: "workouts remove-exercise", desc: "Remove an exercise and its sets from a session", method: "DELETE", path: "/agent/workouts/exercises", confirm: true,
+    opts: [{ flag: "--id <id>", api: "id", type: "str", required: true, desc: "session-exercise id" }] },
+  { name: "workouts delete", desc: "Delete a session and all its sets", method: "DELETE", path: "/agent/workouts", confirm: true,
     opts: [{ flag: "--id <id>", api: "id", type: "str", required: true }] },
 
   // routines

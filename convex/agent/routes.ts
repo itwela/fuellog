@@ -11,6 +11,12 @@ export type ParamSpec = {
   default?: unknown;
   /** Allowed values, for the schema endpoint + nicer errors. */
   enum?: string[];
+  /**
+   * Treat an explicit empty string as a real value rather than an omitted param,
+   * so the field can be cleared. Only set this where the underlying mutation
+   * actually maps "" to undefined — otherwise it stores an empty string.
+   */
+  clearable?: boolean;
   description?: string;
 };
 
@@ -147,7 +153,7 @@ export const agentRoutes: AgentRoute[] = [
       { name: "id", type: "string", required: true },
       { name: "weight", type: "number" },
       { name: "unit", type: "string", enum: ["lb", "kg"] },
-      { name: "notes", type: "string" },
+      { name: "notes", type: "string", clearable: true, description: "Empty string clears" },
     ],
     description: "Update a weigh-in",
   },
@@ -205,8 +211,8 @@ export const agentRoutes: AgentRoute[] = [
     params: [
       { name: "id", type: "string", required: true },
       { name: "name", type: "string" },
-      { name: "quantity", type: "string", description: "Empty string clears" },
-      { name: "unit", type: "string", description: "Empty string clears" },
+      { name: "quantity", type: "string", clearable: true, description: "Empty string clears" },
+      { name: "unit", type: "string", clearable: true, description: "Empty string clears" },
     ],
     description: "Update a grocery item's name/quantity/unit",
   },
@@ -289,8 +295,8 @@ export const agentRoutes: AgentRoute[] = [
     params: [
       { name: "id", type: "string", required: true },
       { name: "actualCost", type: "number" },
-      { name: "store", type: "string" },
-      { name: "notes", type: "string" },
+      { name: "store", type: "string", clearable: true, description: "Empty string clears" },
+      { name: "notes", type: "string", clearable: true, description: "Empty string clears" },
       { name: "shoppedAt", type: "number", description: "Epoch ms" },
     ],
     description: "Update a saved trip",
