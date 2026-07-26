@@ -114,6 +114,50 @@ export const agentRoutes: AgentRoute[] = [
     description: "Delete a hydration log",
   },
 
+  // ---- body weight ----
+  {
+    method: "GET", path: "/agent/weight", fn: api.weight.getEntries, kind: "query", injectUser: true,
+    params: [{ name: "limit", type: "number", description: "Newest first, max 365, defaults to 60" }],
+    description: "List body weight entries, newest first",
+  },
+  {
+    method: "GET", path: "/agent/weight/day", fn: api.weight.getEntryForDate, kind: "query", injectUser: true,
+    params: [{ name: "date", type: "string", required: true, description: "YYYY-MM-DD" }],
+    description: "Get the weigh-in for one day, if any",
+  },
+  {
+    method: "GET", path: "/agent/weight/summary", fn: api.weight.getSummary, kind: "query", injectUser: true,
+    params: [],
+    description: "Latest weigh-in plus change vs the previous entry and vs a week earlier",
+  },
+  {
+    method: "POST", path: "/agent/weight", fn: api.weight.logWeight, kind: "mutation", injectUser: true,
+    params: [
+      { name: "weight", type: "number", required: true },
+      { name: "unit", type: "string", required: true, enum: ["lb", "kg"] },
+      { name: "date", type: "string", required: true, description: "YYYY-MM-DD" },
+      { name: "notes", type: "string" },
+    ],
+    description: "Log a weigh-in (upserts — one entry per day, re-logging corrects it)",
+  },
+  {
+    method: "PATCH", path: "/agent/weight", fn: api.weight.updateEntry, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "weight_logs" },
+    params: [
+      { name: "id", type: "string", required: true },
+      { name: "weight", type: "number" },
+      { name: "unit", type: "string", enum: ["lb", "kg"] },
+      { name: "notes", type: "string" },
+    ],
+    description: "Update a weigh-in",
+  },
+  {
+    method: "DELETE", path: "/agent/weight", fn: api.weight.removeEntry, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "weight_logs" },
+    params: [{ name: "id", type: "string", required: true }],
+    description: "Delete a weigh-in",
+  },
+
   // ---- goals ----
   { method: "GET", path: "/agent/goals", fn: api.goals.get, kind: "query", injectUser: true, params: [], description: "Get daily macro goals" },
   {
@@ -207,6 +251,55 @@ export const agentRoutes: AgentRoute[] = [
       { name: "estimatedCost", type: "number" },
     ],
     description: "Update a grocery list's estimated cost",
+  },
+
+  // ---- grocery trips ----
+  {
+    method: "GET", path: "/agent/grocery/trips", fn: api.grocery.getTrips, kind: "query", injectUser: true,
+    params: [{ name: "limit", type: "number", description: "Newest first, max 200, defaults to 50" }],
+    description: "List saved shopping trips, newest first",
+  },
+  {
+    method: "GET", path: "/agent/grocery/trips/stats", fn: api.grocery.getTripStats, kind: "query", injectUser: true,
+    params: [],
+    description: "Shopping frequency and spend: trips + spend in the last 30 days, average cost, average days between trips",
+  },
+  {
+    method: "GET", path: "/agent/grocery/trip/items", fn: api.grocery.getTripItems, kind: "query", injectUser: false,
+    owned: { param: "tripId", table: "grocery_trips" },
+    params: [{ name: "tripId", type: "string", required: true }],
+    description: "The items bought on one trip",
+  },
+  {
+    method: "POST", path: "/agent/grocery/trips", fn: api.grocery.saveTrip, kind: "mutation", injectUser: true,
+    owned: { param: "listId", table: "grocery_lists" },
+    params: [
+      { name: "listId", type: "string", required: true },
+      { name: "actualCost", type: "number", description: "What was actually paid" },
+      { name: "store", type: "string" },
+      { name: "notes", type: "string" },
+      { name: "shoppedAt", type: "number", description: "Epoch ms, defaults to now — set this to back-date a trip" },
+      { name: "resetList", type: "boolean", description: "Uncheck the items afterwards; defaults true" },
+    ],
+    description: "Save a shopping trip, snapshotting the list's currently-checked items",
+  },
+  {
+    method: "PATCH", path: "/agent/grocery/trip", fn: api.grocery.updateTrip, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "grocery_trips" },
+    params: [
+      { name: "id", type: "string", required: true },
+      { name: "actualCost", type: "number" },
+      { name: "store", type: "string" },
+      { name: "notes", type: "string" },
+      { name: "shoppedAt", type: "number", description: "Epoch ms" },
+    ],
+    description: "Update a saved trip",
+  },
+  {
+    method: "DELETE", path: "/agent/grocery/trip", fn: api.grocery.deleteTrip, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "grocery_trips" },
+    params: [{ name: "id", type: "string", required: true }],
+    description: "Delete a trip and its item snapshot",
   },
 
   // ---- foodbank ----
@@ -322,6 +415,62 @@ export const agentRoutes: AgentRoute[] = [
     owned: { param: "id", table: "workout_sessions" },
     params: [{ name: "id", type: "string", required: true }],
     description: "Mark a session complete",
+  },
+  {
+    method: "POST", path: "/agent/workouts/log", fn: api.workout.logPastSession, kind: "mutation", injectUser: true,
+    params: [
+      { name: "name", type: "string", required: true },
+      { name: "exerciseIds", type: "json", required: true, description: "Array of exercise ids, in order" },
+      { name: "date", type: "string", required: true, description: "YYYY-MM-DD of the day it happened" },
+    ],
+    description: "Record a workout that already happened, on any date, saved already-completed. Use this for 'I did X today' rather than starting a live session. Fill in reps/weight afterwards with POST /agent/workouts/sets",
+  },
+  {
+    method: "GET", path: "/agent/workouts/session", fn: api.workout.getSession, kind: "query", injectUser: false,
+    owned: { param: "sessionId", table: "workout_sessions" },
+    params: [{ name: "sessionId", type: "string", required: true }],
+    description: "One session with its exercises and sets joined",
+  },
+  {
+    method: "PATCH", path: "/agent/workouts", fn: api.workout.updateSession, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "workout_sessions" },
+    params: [
+      { name: "id", type: "string", required: true },
+      { name: "name", type: "string" },
+      { name: "startedAt", type: "number", description: "Epoch ms — moves the session to another day/time" },
+    ],
+    description: "Rename a session or move it to a different date",
+  },
+  {
+    method: "POST", path: "/agent/workouts/sets", fn: api.workout.replaceSets, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "workout_session_exercises" },
+    params: [
+      { name: "id", type: "string", required: true, description: "workout_session_exercises id" },
+      { name: "sets", type: "json", required: true, description: "Full replacement array of {reps?, weight?, completed}. Covers editing, adding and removing sets in one call" },
+    ],
+    description: "Replace an exercise's whole set list",
+  },
+  {
+    method: "POST", path: "/agent/workouts/exercises", fn: api.workout.addExerciseToSession, kind: "mutation", injectUser: false,
+    owned: { param: "sessionId", table: "workout_sessions" },
+    params: [
+      { name: "sessionId", type: "string", required: true },
+      { name: "exerciseId", type: "string", required: true },
+      { name: "setCount", type: "number", description: "Defaults to the exercise's defaultSets, or 3" },
+    ],
+    description: "Add an exercise to an existing session",
+  },
+  {
+    method: "DELETE", path: "/agent/workouts/exercises", fn: api.workout.removeExerciseFromSession, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "workout_session_exercises" },
+    params: [{ name: "id", type: "string", required: true, description: "workout_session_exercises id" }],
+    description: "Remove one exercise and its sets from a session",
+  },
+  {
+    method: "DELETE", path: "/agent/workouts", fn: api.workout.deleteSession, kind: "mutation", injectUser: false,
+    owned: { param: "id", table: "workout_sessions" },
+    params: [{ name: "id", type: "string", required: true }],
+    description: "Delete a session and all its sets",
   },
 
   // ---- routines ----

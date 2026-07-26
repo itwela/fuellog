@@ -13,9 +13,12 @@ const OWNER_VIA: Record<string, { field: string } | null> = {
   user_goals: null,
   meal_plans: null,
   hydration_logs: null,
+  weight_logs: null,
+  grocery_trips: null,
   grocery_list_items: { field: "listId" },
   workout_session_exercises: { field: "sessionId" },
   meal_plan_items: { field: "planId" },
+  grocery_trip_items: { field: "tripId" },
 };
 
 export const checkOwner = internalQuery({

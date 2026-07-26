@@ -129,7 +129,7 @@ http.route({
   handler: httpAction(async (ctx, request) => {
     try {
       const userId = await authenticate(ctx, request);
-      return ok({ userId, app: "fuellog" });
+      return ok({ userId, app: "living-proof" });
     } catch (err) {
       if (err instanceof AgentError) return fail(err.status, err.code, err.message, err.hint);
       throw err;
@@ -144,7 +144,7 @@ http.route({
     try {
       await authenticate(ctx, request);
       return ok({
-        app: "fuellog",
+        app: "living-proof",
         envelope: "{ ok: true, data } | { ok: false, error: { code, message, hint } }",
         auth: "Authorization: Bearer <key>",
         routes: agentRoutes.map(({ fn: _fn, ...rest }) => rest),
