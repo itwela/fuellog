@@ -1,6 +1,8 @@
-# FuelLog
+# Living Proof
 
-Personal nutrition tracker. Log meals, track macros, and build a food bank of your go-to foods — all powered by AI.
+Personal nutrition and training tracker. Log meals, track macros, plan groceries, record workouts and body weight — all powered by AI, and all drivable by an AI agent through the `fuel` CLI.
+
+> The repo, npm package, Convex deployment and Vercel project are still named `fuellog` from before the rename. Only the product name changed.
 
 ## Features
 
@@ -9,6 +11,10 @@ Personal nutrition tracker. Log meals, track macros, and build a food bank of yo
 - **Serving multiplier** — scale any meal's macros with − N + controls, apply to save
 - **Date navigation** — week strip + month calendar, browse any day's log
 - **Daily macro goals** — progress bars for calories, protein, carbs, fat
+- **Grocery lists + trip history** — reorderable lists, shopping mode, and a saved record of each run with what you actually paid
+- **Workouts** — routines, live sessions, editable past sessions, and back-dated logging
+- **Body weight** — one weigh-in per day with trend against last entry and last week
+- **Agent CLI** — `fuel`, an API-key-authenticated CLI over the whole surface, so Claude can read and write your log
 - **Desktop sidebar** — calorie ring overview at a glance
 
 ## Stack

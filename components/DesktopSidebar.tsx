@@ -117,7 +117,7 @@ export function DesktopSidebar({
         {/* Logo */}
         <div className="px-6 pt-9 pb-7">
           <h1 className="text-sm font-bold tracking-[0.25em] uppercase text-[#b6ff4a]">
-            MACROE
+            LIVING PROOF
           </h1>
           <p className="text-xs font-medium text-[#6a6a6a] mt-1">Personal Nutrition</p>
         </div>

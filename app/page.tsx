@@ -26,7 +26,7 @@ export default function LandingPage() {
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-5 md:px-12">
         <span className="text-sm font-bold tracking-[0.25em] uppercase text-[#b6ff4a]">
-          MACROE
+          LIVING PROOF
         </span>
         <Link
           href="/sign-in"
@@ -68,7 +68,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-[#888] text-lg md:text-xl max-w-xl mx-auto mb-10 leading-relaxed font-light">
-            macroe tracks your food, your macros, and your groceries — with AI
+            Living Proof tracks your food, your macros, and your groceries — with AI
             that actually understands how you eat.
           </p>
 
@@ -112,7 +112,7 @@ export default function LandingPage() {
             {
               number: "03",
               title: "Groceries write themselves",
-              body: "Add meals to your plan and macroe builds your grocery list. Show up to the store knowing exactly what you need.",
+              body: "Add meals to your plan and Living Proof builds your grocery list. Show up to the store knowing exactly what you need.",
             },
           ].map((f) => (
             <div key={f.number} className="bg-[#0a0a0a] p-8 md:p-10">
@@ -155,7 +155,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="px-6 md:px-12 py-8 border-t border-white/5 flex items-center justify-between">
         <span className="text-xs font-bold tracking-[0.25em] uppercase text-[#333]">
-          MACROE
+          LIVING PROOF
         </span>
         <span className="text-xs text-[#333]">
           by{" "}

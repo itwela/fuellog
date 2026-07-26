@@ -73,7 +73,7 @@ export function SettingsSheet({ userId, onClose }: Props) {
         <div className="flex items-center justify-between px-6 pt-8 pb-6">
           <div>
             <h2 className="text-base font-bold text-[#f2f2f2]">Settings</h2>
-            <p className="text-xs text-[#555] mt-0.5">macroe</p>
+            <p className="text-xs text-[#555] mt-0.5">Living Proof</p>
           </div>
           <button
             onClick={onClose}
