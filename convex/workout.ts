@@ -281,6 +281,181 @@ export const completeSession = mutation({
   },
 });
 
+/* ---------------------------------------------------------------------------
+ * Editing a session after the fact.
+ * ------------------------------------------------------------------------- */
+
+const setValidator = v.object({
+  reps: v.optional(v.number()),
+  weight: v.optional(v.string()),
+  completed: v.boolean(),
+});
+
+/** One session with its exercises joined — for the edit sheet. */
+export const getSession = query({
+  args: { sessionId: v.id("workout_sessions") },
+  handler: async (ctx, { sessionId }) => {
+    const session = await ctx.db.get(sessionId);
+    if (!session) return null;
+    return { ...session, exercises: await joinSessionExercises(ctx, sessionId) };
+  },
+});
+
+/** Rename a session or move it to a different date/time. */
+export const updateSession = mutation({
+  args: {
+    id: v.id("workout_sessions"),
+    name: v.optional(v.string()),
+    startedAt: v.optional(v.number()),
+  },
+  handler: async (ctx, { id, name, startedAt }) => {
+    const patch: { name?: string; startedAt?: number } = {};
+    if (name !== undefined) {
+      const trimmed = name.trim();
+      if (!trimmed) throw new Error("Session name cannot be empty");
+      patch.name = trimmed;
+    }
+    if (startedAt !== undefined) patch.startedAt = startedAt;
+    await ctx.db.patch(id, patch);
+  },
+});
+
+/** Replace an exercise's whole set list — covers editing, adding and removing sets. */
+export const replaceSets = mutation({
+  args: {
+    id: v.id("workout_session_exercises"),
+    sets: v.array(setValidator),
+  },
+  handler: async (ctx, { id, sets }) => {
+    const record = await ctx.db.get(id);
+    if (!record) throw new Error("Exercise not found in this session");
+    await ctx.db.patch(id, {
+      sets,
+      completed: sets.length > 0 && sets.every((s) => s.completed),
+    });
+  },
+});
+
+/** Add an exercise to an existing session, appended at the end. */
+export const addExerciseToSession = mutation({
+  args: {
+    sessionId: v.id("workout_sessions"),
+    exerciseId: v.id("exercises"),
+    setCount: v.optional(v.number()),
+  },
+  handler: async (ctx, { sessionId, exerciseId, setCount }) => {
+    const session = await ctx.db.get(sessionId);
+    if (!session) throw new Error("Session not found");
+
+    const existing = await ctx.db
+      .query("workout_session_exercises")
+      .withIndex("by_session", (q) => q.eq("sessionId", sessionId))
+      .collect();
+
+    const exercise = await ctx.db.get(exerciseId);
+    const count = Math.max(1, Math.min(20, setCount ?? exercise?.defaultSets ?? 3));
+    const order = existing.reduce((max, row) => Math.max(max, row.order), -1) + 1;
+
+    const id = await ctx.db.insert("workout_session_exercises", {
+      sessionId,
+      exerciseId,
+      order,
+      sets: Array.from({ length: count }, () => ({
+        reps: undefined,
+        weight: undefined,
+        completed: false,
+      })),
+      completed: false,
+    });
+
+    await ctx.db.patch(sessionId, { exerciseIds: [...session.exerciseIds, exerciseId] });
+    return id;
+  },
+});
+
+/** Remove one exercise from a session, keeping the parent session in sync. */
+export const removeExerciseFromSession = mutation({
+  args: { id: v.id("workout_session_exercises") },
+  handler: async (ctx, { id }) => {
+    const record = await ctx.db.get(id);
+    if (!record) return;
+
+    await ctx.db.delete(id);
+
+    const session = await ctx.db.get(record.sessionId);
+    if (!session) return;
+
+    // exerciseIds can hold the same exercise twice; drop only one occurrence.
+    const remaining = [...session.exerciseIds];
+    const idx = remaining.indexOf(record.exerciseId);
+    if (idx >= 0) remaining.splice(idx, 1);
+    await ctx.db.patch(record.sessionId, { exerciseIds: remaining });
+  },
+});
+
+/** Delete a session and every row hanging off it. */
+export const deleteSession = mutation({
+  args: { id: v.id("workout_sessions") },
+  handler: async (ctx, { id }) => {
+    const rows = await ctx.db
+      .query("workout_session_exercises")
+      .withIndex("by_session", (q) => q.eq("sessionId", id))
+      .collect();
+    await Promise.all(rows.map((row) => ctx.db.delete(row._id)));
+    await ctx.db.delete(id);
+  },
+});
+
+/**
+ * Record a workout onto a past date — for days you trained but forgot to hit start.
+ * Lands already completed so it shows up on the calendar straight away.
+ */
+export const logPastSession = mutation({
+  args: {
+    userId: v.string(),
+    name: v.string(),
+    exerciseIds: v.array(v.id("exercises")),
+    /** ISO YYYY-MM-DD of the day the workout happened. */
+    date: v.string(),
+  },
+  handler: async (ctx, { userId, name, exerciseIds, date }) => {
+    const trimmed = name.trim();
+    if (!trimmed) throw new Error("Session name cannot be empty");
+
+    // Midday UTC so the session lands inside the day's bounds used by the calendar queries.
+    const [y, m, d] = date.split("-").map(Number);
+    if (!y || !m || !d) throw new Error("Date must be YYYY-MM-DD");
+    const startedAt = Date.UTC(y, m - 1, d, 12, 0, 0, 0);
+
+    const sessionId = await ctx.db.insert("workout_sessions", {
+      userId,
+      name: trimmed,
+      startedAt,
+      completedAt: startedAt,
+      exerciseIds,
+    });
+
+    await Promise.all(
+      exerciseIds.map(async (exerciseId, i) => {
+        const ex = await ctx.db.get(exerciseId);
+        await ctx.db.insert("workout_session_exercises", {
+          sessionId,
+          exerciseId,
+          order: i,
+          sets: Array.from({ length: ex?.defaultSets ?? 3 }, () => ({
+            reps: undefined,
+            weight: undefined,
+            completed: false,
+          })),
+          completed: false,
+        });
+      })
+    );
+
+    return sessionId;
+  },
+});
+
 export const getExerciseImageUrl = query({
   args: { storageId: v.string() },
   handler: async (ctx, { storageId }) => {

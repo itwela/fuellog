@@ -6,13 +6,16 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { GroceryListDetail } from "./GroceryListDetail";
+import { TripsView } from "./TripsView";
 
 const ACCENT = "#fdcb40";
+type GroceryTab = "lists" | "trips";
 
 export function GroceryView({ userId }: { userId: string }) {
   const [selectedList, setSelectedList] = useState<Id<"grocery_lists"> | null>(null);
   const [newListName, setNewListName] = useState("");
   const [adding, setAdding] = useState(false);
+  const [tab, setTab] = useState<GroceryTab>("lists");
 
   const lists = useQuery(api.grocery.getLists, { userId }) ?? [];
   const createList = useMutation(api.grocery.createList);
@@ -30,6 +33,7 @@ export function GroceryView({ userId }: { userId: string }) {
     return (
       <GroceryListDetail
         listId={selectedList}
+        userId={userId}
         accent={ACCENT}
         onBack={() => setSelectedList(null)}
       />
@@ -48,6 +52,29 @@ export function GroceryView({ userId }: { userId: string }) {
         </h1>
       </div>
 
+      {/* Tab switcher */}
+      <div className="flex rounded-xl p-1 mx-5 mb-4" style={{ background: "#1a1a1a" }}>
+        {(["lists", "trips"] as GroceryTab[]).map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className="flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-colors"
+            style={{
+              background: tab === t ? ACCENT : "transparent",
+              color: tab === t ? "#0e0e0e" : "#6a6a6a",
+              letterSpacing: tab === t ? "-0.01em" : undefined,
+            }}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {tab === "trips" ? (
+        <TripsView userId={userId} accent={ACCENT} />
+      ) : (
+        <>
       <div className="flex-1 px-4 space-y-2">
         <AnimatePresence>
           {lists.map((list) => (
@@ -139,6 +166,8 @@ export function GroceryView({ userId }: { userId: string }) {
           {adding ? "Cancel" : "New List"}
         </motion.button>
       </div>
+        </>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SheetHeader } from "@/components/ui/SheetHeader";
 import { useQuery, useMutation } from "convex/react";
@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { AliveCard } from "@/components/AliveCard";
 import { GroceryTextParseMode } from "./GroceryTextParseMode";
+import { FinishTripSheet } from "./FinishTripSheet";
 import { DraggableReorderList, type ReorderItem } from "@/components/lightswind/draggable-reorder-list";
 
 /** Clear “done” accent — filled circle + border */
@@ -146,16 +147,19 @@ function GroceryQtyStepperRow({ item, checked }: { item: Doc<"grocery_list_items
 
 export function GroceryListDetail({
   listId,
+  userId,
   accent,
   onBack,
 }: {
   listId: Id<"grocery_lists">;
+  userId: string;
   accent: string;
   onBack: () => void;
 }) {
   const [newItem, setNewItem] = useState("");
   const [newQty, setNewQty] = useState("");
   const [shopping, setShopping] = useState(false);
+  const [finishingTrip, setFinishingTrip] = useState(false);
   const [listTab, setListTab] = useState<"list" | "ai">("list");
   const [costInput, setCostInput] = useState<string>("");
   const [editingItem, setEditingItem] = useState<Doc<"grocery_list_items"> | null>(null);
@@ -177,6 +181,19 @@ export function GroceryListDetail({
 
   const unchecked = items.filter((i) => !i.checked).sort((a, b) => a.order - b.order);
   const checked = items.filter((i) => i.checked).sort((a, b) => a.order - b.order);
+
+  // Memoized so the reorder list isn't handed a brand-new array identity every render.
+  const draggableItems = useMemo(
+    (): ReorderItem[] =>
+      unchecked.map((item) => ({
+        id: item._id,
+        label: item.name,
+        description: item.unit || undefined,
+        quantity: parseQtyCount(item.quantity),
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [unchecked.map((i) => `${i._id}:${i.name}:${i.unit ?? ""}:${i.quantity ?? ""}`).join("|")]
+  );
 
   // Sync cost input when list data loads
   useEffect(() => {
@@ -225,6 +242,15 @@ export function GroceryListDetail({
     setShopping(true);
   }
 
+  /** Finishing a run: offer to save it as a trip, but only when something was picked up. */
+  function handleFinishShopping() {
+    if (checked.length > 0) {
+      setFinishingTrip(true);
+    } else {
+      setShopping(false);
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-full pb-4">
       {/* Header */}
@@ -242,7 +268,7 @@ export function GroceryListDetail({
         </h1>
         <motion.button
           whileTap={{ scale: 0.93 }}
-          onClick={shopping ? () => setShopping(false) : handleStartShopping}
+          onClick={shopping ? handleFinishShopping : handleStartShopping}
           className="px-4 py-2 rounded-xl text-sm font-bold"
           style={{ background: shopping ? "#252525" : accent, color: shopping ? "#6a6a6a" : "#0e0e0e" }}
         >
@@ -288,26 +314,17 @@ export function GroceryListDetail({
           {/* Non-shopping: draggable reorder list */}
           {!shopping && (
             <DraggableReorderList
-              key={unchecked.map(i => i._id).join(",")}
-              items={unchecked.map((item): ReorderItem => ({
-                id: item._id,
-                label: item.name,
-                description: item.unit || undefined,
-                quantity: parseQtyCount(item.quantity),
-              }))}
+              items={draggableItems}
               removable
               onEditItem={openEditItem}
               onQuantityChange={(id, qty) => {
                 void updateItemMeta({ id: id as Id<"grocery_list_items">, quantity: String(qty) });
               }}
+              onRemoveItem={(id) => {
+                void removeItem({ id: id as Id<"grocery_list_items"> });
+              }}
               onReorder={(newOrder) => {
-                const wasRemoved = newOrder.length < unchecked.length;
-                if (wasRemoved) {
-                  const removedId = unchecked.find(i => !newOrder.find(n => n.id === i._id))?._id;
-                  if (removedId) removeItem({ id: removedId });
-                } else {
-                  reorderItems({ ids: newOrder.map(i => i.id as Id<"grocery_list_items">) });
-                }
+                void reorderItems({ ids: newOrder.map((i) => i.id as Id<"grocery_list_items">) });
               }}
             />
           )}
@@ -440,6 +457,28 @@ export function GroceryListDetail({
           </motion.button>
         </div>
       )}
+
+      {/* Save-the-trip sheet */}
+      <AnimatePresence>
+        {finishingTrip && (
+          <FinishTripSheet
+            userId={userId}
+            listId={listId}
+            accent={accent}
+            purchasedCount={checked.length}
+            estimatedCost={listData?.estimatedCost ?? undefined}
+            onClose={() => {
+              // "Not now" — leave shopping mode without recording anything.
+              setFinishingTrip(false);
+              setShopping(false);
+            }}
+            onSaved={() => {
+              setFinishingTrip(false);
+              setShopping(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Edit item name sheet */}
       <AnimatePresence>

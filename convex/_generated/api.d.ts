@@ -26,6 +26,7 @@ import type * as mealplans from "../mealplans.js";
 import type * as meals from "../meals.js";
 import type * as migrations from "../migrations.js";
 import type * as reports from "../reports.js";
+import type * as weight from "../weight.js";
 import type * as workout from "../workout.js";
 
 import type {
@@ -53,6 +54,7 @@ declare const fullApi: ApiFromModules<{
   meals: typeof meals;
   migrations: typeof migrations;
   reports: typeof reports;
+  weight: typeof weight;
   workout: typeof workout;
 }>;
 

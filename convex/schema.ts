@@ -67,6 +67,32 @@ export default defineSchema({
     order: v.number(),
   }).index("by_list", ["listId"]),
 
+  /** One completed shopping run. Snapshot of what was actually bought + paid. */
+  grocery_trips: defineTable({
+    userId: v.string(),
+    listId: v.optional(v.id("grocery_lists")),
+    /** List name copied at trip time so the record survives the list being renamed or deleted. */
+    listName: v.string(),
+    store: v.optional(v.string()),
+    /** What was actually paid. Absent when the trip was saved without a total. */
+    actualCost: v.optional(v.number()),
+    /** The list's estimate at the time of the trip, for estimate-vs-actual. */
+    estimatedCost: v.optional(v.number()),
+    itemCount: v.number(),
+    notes: v.optional(v.string()),
+    shoppedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_date", ["userId", "shoppedAt"]),
+
+  grocery_trip_items: defineTable({
+    tripId: v.id("grocery_trips"),
+    name: v.string(),
+    quantity: v.optional(v.string()),
+    unit: v.optional(v.string()),
+    order: v.number(),
+  }).index("by_trip", ["tripId"]),
+
   exercises: defineTable({
     userId: v.string(),
     name: v.string(),
@@ -145,6 +171,20 @@ export default defineSchema({
     sugar: v.optional(v.number()),
     order: v.number(),
   }).index("by_plan", ["planId"]),
+
+  /** Body weight check-ins. One canonical entry per civil day, keyed by `date`. */
+  weight_logs: defineTable({
+    userId: v.string(),
+    /** Weight in the unit given by `unit`. */
+    weight: v.number(),
+    unit: v.union(v.literal("lb"), v.literal("kg")),
+    /** ISO YYYY-MM-DD of the civil day this weigh-in belongs to. */
+    date: v.string(),
+    notes: v.optional(v.string()),
+    loggedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_date", ["userId", "date"]),
 
   hydration_logs: defineTable({
     userId: v.string(),
