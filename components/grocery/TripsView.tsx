@@ -6,7 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { AliveCard } from "@/components/AliveCard";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { formatDate } from "@/lib/utils";
 
@@ -48,28 +48,15 @@ function TripDetailSheet({
   const items = useQuery(api.grocery.getTripItems, { tripId: trip._id }) ?? [];
 
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 z-40 bg-black/60"
-      />
-      <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", stiffness: 320, damping: 38 }}
-        className="fixed inset-x-0 bottom-0 z-50 px-5 pt-4 rounded-t-3xl max-h-[80vh] flex flex-col"
-        style={{
-          background: "#1a1a1a",
-          paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))",
-          border: "1px solid rgba(255,255,255,0.06)",
-        }}
-      >
-        <SheetHeader onClose={onClose} />
-
+    <BottomSheet
+      onClose={onClose}
+      className="px-5 pt-4 rounded-t-3xl max-h-[80vh] flex flex-col"
+      panelStyle={{
+        background: "#1a1a1a",
+        paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))",
+        border: "1px solid rgba(255,255,255,0.06)",
+      }}
+    >
         <div className="flex items-start justify-between gap-3 mb-1">
           <div className="min-w-0">
             <p className="text-base font-semibold text-[#f2f2f2]" style={{ letterSpacing: "-0.01em" }}>
@@ -129,8 +116,7 @@ function TripDetailSheet({
         >
           Delete this trip
         </button>
-      </motion.div>
-    </>
+    </BottomSheet>
   );
 }
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useMutation, useAction } from "convex/react";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 
@@ -85,23 +85,11 @@ export function PlanItemSheet({
   }
 
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 z-40 bg-black/60"
-      />
-      <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", stiffness: 320, damping: 38 }}
-        className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl px-5 pt-4 pb-10"
-        style={{ background: "#1a1a1a", maxHeight: "85dvh", overflowY: "auto" }}
-      >
-        <SheetHeader onClose={onClose} />
+    <BottomSheet
+      onClose={onClose}
+      className="rounded-t-3xl px-5 pt-4 pb-10"
+      panelStyle={{ background: "#1a1a1a", maxHeight: "85dvh", overflowY: "auto" }}
+    >
         <h2 className="text-xl font-bold mb-5" style={{ fontFamily: "var(--font-display)" }}>
           Add meal to plan
         </h2>
@@ -173,7 +161,6 @@ export function PlanItemSheet({
         >
           Add to Plan
         </motion.button>
-      </motion.div>
-    </>
+    </BottomSheet>
   );
 }

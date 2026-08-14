@@ -6,6 +6,7 @@ import { useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { compressImage } from "@/lib/utils";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { FoodBankPicker } from "./FoodBankPicker";
 import { TextParseMode } from "./TextParseMode";
 
@@ -299,23 +300,11 @@ export function LogMealSheet({
 
   return (
     <>
-      {/* Backdrop */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 z-40 bg-black/60"
-      />
-
-      {/* Sheet */}
-      <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", stiffness: 320, damping: 38 }}
-        className="fixed inset-x-0 bottom-0 z-50 px-5 pt-3 pb-8 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[480px]"
-        style={{
+      <BottomSheet
+        onClose={onClose}
+        showHeader={false}
+        className="px-5 pt-3 pb-8 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[480px]"
+        panelStyle={{
           background: "#1a1a1a",
           borderRadius: "20px 20px 0 0",
           maxHeight: "calc(100dvh - 16px)",
@@ -811,7 +800,7 @@ export function LogMealSheet({
             </motion.div>
           ) : null}
         </AnimatePresence>
-      </motion.div>
+      </BottomSheet>
 
       {showFoodBank && (
         <FoodBankPicker

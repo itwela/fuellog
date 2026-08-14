@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 
@@ -74,30 +74,18 @@ export function AddToPlanSheet({
   }
 
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 z-50 bg-black/60"
-      />
-      <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", stiffness: 340, damping: 40 }}
-        className="fixed inset-x-0 bottom-0 z-50 px-5 pt-3 pb-10 rounded-t-[20px]"
-        style={{
-          background: "#1a1a1a",
-          maxHeight: "80dvh",
-          overflowY: "auto",
-          border: "1px solid rgba(255,255,255,0.06)",
-          paddingBottom: "calc(2.5rem + env(safe-area-inset-bottom))",
-        }}
-      >
-        <SheetHeader onClose={onClose} />
-
+    <BottomSheet
+      onClose={onClose}
+      className="px-5 pt-3 pb-10 rounded-t-[20px]"
+      panelStyle={{
+        background: "#1a1a1a",
+        maxHeight: "80dvh",
+        overflowY: "auto",
+        border: "1px solid rgba(255,255,255,0.06)",
+        paddingBottom: "calc(2.5rem + env(safe-area-inset-bottom))",
+      }}
+      transition={{ type: "spring", stiffness: 340, damping: 40 }}
+    >
         <AnimatePresence mode="wait">
           {done ? (
             <motion.div
@@ -195,7 +183,6 @@ export function AddToPlanSheet({
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
-    </>
+    </BottomSheet>
   );
 }

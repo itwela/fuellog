@@ -6,7 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { formatDayLabel, toISO } from "@/lib/utils";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 
 type Unit = "lb" | "kg";
 type WeightEntry = Doc<"weight_logs">;
@@ -220,28 +220,15 @@ export function WeightCard({
       {/* Log / edit sheet */}
       <AnimatePresence>
         {sheetOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSheetOpen(false)}
-              className="fixed inset-0 z-40 bg-black/60"
-            />
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 320, damping: 38 }}
-              className="fixed inset-x-0 bottom-0 z-50 px-5 pt-4 rounded-t-3xl"
-              style={{
-                background: "#1a1a1a",
-                paddingBottom: "calc(2rem + env(safe-area-inset-bottom))",
-                border: "1px solid rgba(255,255,255,0.06)",
-              }}
-            >
-              <SheetHeader onClose={() => setSheetOpen(false)} />
-
+          <BottomSheet
+            onClose={() => setSheetOpen(false)}
+            className="px-5 pt-4 rounded-t-3xl"
+            panelStyle={{
+              background: "#1a1a1a",
+              paddingBottom: "calc(2rem + env(safe-area-inset-bottom))",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
               <p className="text-base font-semibold text-[#f2f2f2]" style={{ letterSpacing: "-0.01em" }}>
                 Weigh-in
               </p>
@@ -309,35 +296,22 @@ export function WeightCard({
                   {saving ? "Saving…" : "Save"}
                 </motion.button>
               </div>
-            </motion.div>
-          </>
+          </BottomSheet>
         )}
       </AnimatePresence>
 
       {/* History sheet */}
       <AnimatePresence>
         {historyOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setHistoryOpen(false)}
-              className="fixed inset-0 z-40 bg-black/60"
-            />
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 320, damping: 38 }}
-              className="fixed inset-x-0 bottom-0 z-50 px-5 pt-4 rounded-t-3xl max-h-[75vh] flex flex-col"
-              style={{
-                background: "#1a1a1a",
-                paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))",
-                border: "1px solid rgba(255,255,255,0.06)",
-              }}
-            >
-              <SheetHeader onClose={() => setHistoryOpen(false)} />
+          <BottomSheet
+            onClose={() => setHistoryOpen(false)}
+            className="px-5 pt-4 rounded-t-3xl max-h-[75vh] flex flex-col"
+            panelStyle={{
+              background: "#1a1a1a",
+              paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
               <p className="text-base font-semibold text-[#f2f2f2] mb-3" style={{ letterSpacing: "-0.01em" }}>
                 Weight history
               </p>
@@ -378,8 +352,7 @@ export function WeightCard({
                   <p className="text-center text-[#6a6a6a] text-sm py-6">No weigh-ins recorded yet</p>
                 )}
               </div>
-            </motion.div>
-          </>
+          </BottomSheet>
         )}
       </AnimatePresence>
     </>

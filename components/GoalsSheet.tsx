@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { api } from "@/convex/_generated/api";
 
 interface GoalForm {
@@ -65,30 +65,22 @@ export function GoalsSheet({
   ];
 
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 z-40"
-        style={{ background: "rgba(0,0,0,0.52)" }}
-      />
-      <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", stiffness: 340, damping: 40 }}
-        className="fixed inset-x-0 bottom-0 z-50 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[400px]"
-        style={{
-          background: "#1a1a1a",
-          borderRadius: "20px 20px 0 0",
-          maxHeight: "calc(100dvh - 16px)",
-          overflowY: "auto",
-          paddingBottom: "calc(2rem + env(safe-area-inset-bottom))",
-          overscrollBehavior: "contain",
-        }}
-      >
+    <BottomSheet
+      onClose={onClose}
+      showHeader={false}
+      backdropClassName=""
+      backdropStyle={{ background: "rgba(0,0,0,0.52)" }}
+      transition={{ type: "spring", stiffness: 340, damping: 40 }}
+      className="md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[400px]"
+      panelStyle={{
+        background: "#1a1a1a",
+        borderRadius: "20px 20px 0 0",
+        maxHeight: "calc(100dvh - 16px)",
+        overflowY: "auto",
+        paddingBottom: "calc(2rem + env(safe-area-inset-bottom))",
+        overscrollBehavior: "contain",
+      }}
+    >
         <div
           className="w-9 h-[5px] rounded-full mx-auto mt-3 mb-4 md:hidden"
           style={{ background: "rgba(84,84,88,0.6)" }}
@@ -158,7 +150,6 @@ export function GoalsSheet({
             Save Goals
           </motion.button>
         </div>
-      </motion.div>
-    </>
+    </BottomSheet>
   );
 }

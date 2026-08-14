@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { PlanItemSheet } from "./PlanItemSheet";
@@ -33,29 +33,16 @@ export function PlanDetailSheet({
   const reorderItems = useMutation(api.mealplans.reorderItems);
 
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 z-40 bg-black/60"
-      />
-      <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", stiffness: 320, damping: 38 }}
-        className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl px-5 pt-4"
-        style={{
-          background: "#0e0e0e",
-          maxHeight: "90dvh",
-          overflowY: "auto",
-          paddingBottom: "calc(2rem + env(safe-area-inset-bottom))",
-        }}
-      >
-        <SheetHeader onClose={onClose} />
-
+    <BottomSheet
+      onClose={onClose}
+      className="rounded-t-3xl px-5 pt-4"
+      panelStyle={{
+        background: "#0e0e0e",
+        maxHeight: "90dvh",
+        overflowY: "auto",
+        paddingBottom: "calc(2rem + env(safe-area-inset-bottom))",
+      }}
+    >
         <div className="flex items-center justify-between mb-6">
           <div>
             <p className="text-[10px] font-medium text-[#6a6a6a]">Meal Plan</p>
@@ -132,7 +119,6 @@ export function PlanDetailSheet({
             />
           )}
         </AnimatePresence>
-      </motion.div>
-    </>
+    </BottomSheet>
   );
 }

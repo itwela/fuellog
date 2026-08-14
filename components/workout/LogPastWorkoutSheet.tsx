@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { formatDayLabel, toISO } from "@/lib/utils";
 
 type PickerMode = "routines" | "exercises";
@@ -70,29 +70,16 @@ export function LogPastWorkoutSheet({
   }
 
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 z-40 bg-black/60"
-      />
-      <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", stiffness: 320, damping: 38 }}
-        className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl px-5 pt-4 flex flex-col"
-        style={{
-          background: "#1a1a1a",
-          maxHeight: "calc(100dvh - 16px)",
-          paddingBottom: "calc(1rem + env(safe-area-inset-bottom) + 84px)",
-          border: "1px solid rgba(255,255,255,0.06)",
-        }}
-      >
-        <SheetHeader onClose={onClose} />
-
+    <BottomSheet
+      onClose={onClose}
+      className="rounded-t-3xl px-5 pt-4 flex flex-col"
+      panelStyle={{
+        background: "#1a1a1a",
+        maxHeight: "calc(100dvh - 16px)",
+        paddingBottom: "calc(1rem + env(safe-area-inset-bottom) + 84px)",
+        border: "1px solid rgba(255,255,255,0.06)",
+      }}
+    >
         <h2 className="text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
           Log a workout
         </h2>
@@ -215,7 +202,6 @@ export function LogPastWorkoutSheet({
             </motion.button>
           </>
         )}
-      </motion.div>
-    </>
+    </BottomSheet>
   );
 }

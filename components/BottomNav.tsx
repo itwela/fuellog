@@ -84,7 +84,7 @@ export function BottomNav({
 }) {
   return (
     <nav
-      className="relative z-50 flex items-center justify-around px-2"
+      className="relative z-30 flex items-center justify-around px-2"
       style={{
         background: "rgba(10,10,10,0.92)",
         backdropFilter: "blur(24px)",

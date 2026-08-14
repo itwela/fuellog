@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { DraggableReorderList, type ReorderItem } from "@/components/lightswind/draggable-reorder-list";
@@ -61,28 +61,16 @@ export function RoutineSheet({
   }
 
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 z-40 bg-black/60"
-      />
-      <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", stiffness: 320, damping: 38 }}
-        className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl px-5 pt-4"
-        style={{
-          background: "#1a1a1a",
-          maxHeight: "calc(100dvh - 16px)",
-          overflowY: "auto",
-          paddingBottom: "calc(1rem + env(safe-area-inset-bottom) + 84px)",
-        }}
-      >
-        <SheetHeader onClose={onClose} />
+    <BottomSheet
+      onClose={onClose}
+      className="rounded-t-3xl px-5 pt-4"
+      panelStyle={{
+        background: "#1a1a1a",
+        maxHeight: "calc(100dvh - 16px)",
+        overflowY: "auto",
+        paddingBottom: "calc(1rem + env(safe-area-inset-bottom) + 84px)",
+      }}
+    >
         <h2 className="text-xl font-bold mb-5" style={{ fontFamily: "var(--font-display)" }}>
           {isEdit ? "Edit Routine" : "New Routine"}
         </h2>
@@ -189,7 +177,6 @@ export function RoutineSheet({
         >
           Save Routine ({selectedIds.length} exercise{selectedIds.length !== 1 ? "s" : ""})
         </motion.button>
-      </motion.div>
-    </>
+    </BottomSheet>
   );
 }

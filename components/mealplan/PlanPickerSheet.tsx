@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "convex/react";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 
@@ -22,23 +22,11 @@ export function PlanPickerSheet({
   const logMeal = useMutation(api.meals.log);
 
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 z-40 bg-black/60"
-      />
-      <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", stiffness: 320, damping: 38 }}
-        className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl px-5 pt-4 pb-10"
-        style={{ background: "#1a1a1a", maxHeight: "80dvh", overflowY: "auto" }}
-      >
-        <SheetHeader onClose={onClose} />
+    <BottomSheet
+      onClose={onClose}
+      className="rounded-t-3xl px-5 pt-4 pb-10"
+      panelStyle={{ background: "#1a1a1a", maxHeight: "80dvh", overflowY: "auto" }}
+    >
         <h2 className="text-xl font-bold mb-2" style={{ fontFamily: "var(--font-display)" }}>
           Load a Plan
         </h2>
@@ -64,8 +52,7 @@ export function PlanPickerSheet({
             <p className="text-center text-[#6a6a6a] text-sm py-8">No plans yet — create one in the Plans tab</p>
           )}
         </div>
-      </motion.div>
-    </>
+    </BottomSheet>
   );
 }
 

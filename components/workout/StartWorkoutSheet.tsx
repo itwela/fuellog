@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { ExerciseCard } from "./ExerciseCard";
 import { AddExerciseSheet } from "./AddExerciseSheet";
 
@@ -37,26 +37,15 @@ export function StartWorkoutSheet({
 
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 z-40 bg-black/60"
-      />
-      <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", stiffness: 320, damping: 38 }}
-        className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl px-5 pt-4 flex flex-col"
-        style={{
+      <BottomSheet
+        onClose={onClose}
+        className="rounded-t-3xl px-5 pt-4 flex flex-col"
+        panelStyle={{
           background: "#1a1a1a",
           maxHeight: "calc(100dvh - 16px)",
           paddingBottom: "calc(1rem + env(safe-area-inset-bottom) + 84px)",
         }}
       >
-        <SheetHeader onClose={onClose} />
         <h2 className="text-xl font-bold mb-4" style={{ fontFamily: "var(--font-display)" }}>
           {mode === "routines" ? "Start Workout" : "Exercises"}
         </h2>
@@ -145,7 +134,7 @@ export function StartWorkoutSheet({
             </div>
           </>
         )}
-      </motion.div>
+      </BottomSheet>
 
       {(addExerciseOpen || editExercise) && (
         <AddExerciseSheet
